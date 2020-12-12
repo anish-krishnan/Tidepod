@@ -6,93 +6,15 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/anish-krishnan/Tidepod/store"
+	"github.com/anish-krishnan/Tidepod/types"
+
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
-/////////////////////////////////////
-type Store interface {
-	CreateJoke(jokeString string) error
-	DeleteJoke(jokeID int) error
-	LikeJoke(jokeID int) error
-	GetJokes() ([]*Joke, error)
-}
-
-type dbStore struct {
-	db *sql.DB
-}
-
-func (store *dbStore) CreateJoke(jokeString string) error {
-	_, err := store.db.Query("INSERT INTO jokes(id, likes, joke) VALUES (nextval('jokes_id_seq'), $1, $2)", 0, jokeString)
-	if err != nil {
-		panic(err)
-	}
-	return err
-}
-
-func (store *dbStore) DeleteJoke(jokeID int) error {
-	fmt.Println("ANISH DELETE", jokeID)
-	_, err := store.db.Query("DELETE FROM jokes WHERE id = $1", jokeID)
-	if err != nil {
-		panic(err)
-	}
-	return err
-}
-
-func (store *dbStore) LikeJoke(jokeID int) error {
-	_, err := store.db.Query("UPDATE jokes SET likes = likes + 1 WHERE id = $1", jokeID)
-	if err != nil {
-		panic(err)
-	}
-	return err
-}
-
-func (store *dbStore) GetJokes() ([]*Joke, error) {
-	rows, err := store.db.Query("SELECT id, likes, joke from jokes ORDER BY id")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	jokes := []*Joke{}
-	for rows.Next() {
-		joke := &Joke{}
-
-		if err := rows.Scan(&joke.ID, &joke.Likes, &joke.Joke); err != nil {
-			return nil, err
-		}
-
-		jokes = append(jokes, joke)
-	}
-	return jokes, nil
-}
-
-var store Store
-
-func InitStore(s Store) {
-	store = s
-}
-
-/////////////////////////////////////
-
-// Joke contains information about a single Joke
-type Joke struct {
-	ID    int    `json:"id" binding:"required"`
-	Likes int    `json:"likes"`
-	Joke  string `json:"joke" binding:"required"`
-}
-
-// We'll create a list of jokes
-var jokes = []Joke{
-	Joke{1, 0, "Did you hear about the restaurant on the moon? Great food, no atmosphere."},
-	Joke{2, 0, "What do you call a fake noodle? An Impasta."},
-	Joke{3, 0, "How many apples grow on a tree? All of them."},
-	Joke{4, 0, "Want to hear a joke about paper? Nevermind it's tearable."},
-	Joke{5, 0, "I just watched a program about beavers. It was the best dam program I've ever seen."},
-	Joke{6, 0, "Why did the coffee file a police report? It got mugged."},
-	Joke{7, 0, "How does a penguin build it's house? Igloos it together."},
-}
+var mystore store.Store
 
 func main() {
 	connString := "dbname=jokes_db sslmode=disable"
@@ -106,7 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	InitStore(&dbStore{db: db})
+	mystore = &store.DBStore{DB: db}
 
 	// Set the router as the default one shipped with Gin
 	router := gin.Default()
@@ -137,7 +59,7 @@ func main() {
 
 // JokeHandler retrieves a list of available jokes
 func JokeHandler(c *gin.Context) {
-	newJokes, err := store.GetJokes()
+	newJokes, err := mystore.GetJokes()
 
 	if err == nil {
 		c.Header("Content-Type", "application/json")
@@ -150,9 +72,9 @@ func JokeHandler(c *gin.Context) {
 
 // CreateJokeHandler
 func CreateJokeHandler(c *gin.Context) {
-	err := store.CreateJoke(c.Param("joke"))
+	err := mystore.CreateJoke(c.Param("joke"))
 	if err == nil {
-		c.JSON(http.StatusOK, []*Joke{})
+		c.JSON(http.StatusOK, []*types.Joke{})
 	} else {
 		panic(err)
 	}
@@ -162,9 +84,9 @@ func CreateJokeHandler(c *gin.Context) {
 func DeleteJokeHandler(c *gin.Context) {
 	fmt.Println("ANISH DELTE HANDLER")
 	if jokeid, err := strconv.Atoi(c.Param("jokeID")); err == nil {
-		err := store.DeleteJoke(jokeid)
+		err := mystore.DeleteJoke(jokeid)
 		if err == nil {
-			c.JSON(http.StatusOK, []*Joke{})
+			c.JSON(http.StatusOK, []*types.Joke{})
 		} else {
 			panic(err)
 		}
@@ -174,9 +96,9 @@ func DeleteJokeHandler(c *gin.Context) {
 // LikeJoke increments the likes of a particular joke Item
 func LikeJoke(c *gin.Context) {
 	if jokeid, err := strconv.Atoi(c.Param("jokeID")); err == nil {
-		err := store.LikeJoke(jokeid)
+		err := mystore.LikeJoke(jokeid)
 		if err == nil {
-			c.JSON(http.StatusOK, []*Joke{})
+			c.JSON(http.StatusOK, []*types.Joke{})
 		} else {
 			panic(err)
 		}
