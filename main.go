@@ -24,6 +24,7 @@ func main() {
 	}
 
 	db.AutoMigrate(&entity.Joke{})
+	db.AutoMigrate(&entity.Photo{})
 
 	myStore = &store.DBStore{DB: db}
 
@@ -32,6 +33,7 @@ func main() {
 
 	// Serve frontend static files
 	router.Use(static.Serve("/", static.LocalFile("./views", true)))
+	router.Static("/saved", "./saved")
 
 	// Setup route group for the API
 	api := router.Group("/api")
@@ -56,40 +58,20 @@ func main() {
 	api.POST("/jokes/delete/:jokeID", DeleteJokeHandler)
 
 	api.POST("/upload", UploadHandler)
+	api.GET("/photos", GetPhotosHandler)
+	api.POST("/photos/delete/:photoID", DeletePhotoHandler)
 
 	// Start and run the server
 	router.Run(":3000")
 }
 
-// Uploads multiple files to "saved/" folder
-func UploadHandler(c *gin.Context) {
-	form, err := c.MultipartForm()
-	if err != nil {
-		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
-		panic(err)
-	}
-
-	files := form.File["files"]
-
-	for _, file := range files {
-		filename := filepath.Base(file.Filename)
-		if err := c.SaveUploadedFile(file, "saved/"+filename); err != nil {
-			panic(err)
-			c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
-			return
-		}
-	}
-
-	c.String(http.StatusOK, fmt.Sprintf("uploaded %d files!", len(files)))
-}
-
 // JokeHandler retrieves a list of available jokes
 func JokeHandler(c *gin.Context) {
-	newJokes, err := myStore.GetJokes()
+	jokes, err := myStore.GetJokes()
 
 	if err == nil {
 		c.Header("Content-Type", "application/json")
-		c.JSON(http.StatusOK, newJokes)
+		c.JSON(http.StatusOK, jokes)
 	} else {
 		panic(err)
 	}
@@ -121,6 +103,57 @@ func DeleteJokeHandler(c *gin.Context) {
 func LikeJoke(c *gin.Context) {
 	if jokeid, err := strconv.Atoi(c.Param("jokeID")); err == nil {
 		err := myStore.LikeJoke(jokeid)
+		if err == nil {
+			c.JSON(http.StatusOK, []*entity.Joke{})
+		} else {
+			panic(err)
+		}
+	}
+}
+
+// Uploads multiple files to "saved/" folder
+func UploadHandler(c *gin.Context) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		panic(err)
+	}
+
+	files := form.File["files"]
+
+	for _, file := range files {
+		filename := filepath.Base(file.Filename)
+		if err := c.SaveUploadedFile(file, "saved/"+filename); err != nil {
+			panic(err)
+			c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
+			return
+		}
+
+		err := myStore.CreatePhoto(filename)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	c.String(http.StatusOK, fmt.Sprintf("uploaded %d files!", len(files)))
+}
+
+// JokeHandler retrieves a list of available jokes
+func GetPhotosHandler(c *gin.Context) {
+	photos, err := myStore.GetPhotos()
+
+	if err == nil {
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusOK, photos)
+	} else {
+		panic(err)
+	}
+}
+
+// DeleteJokeHandler
+func DeletePhotoHandler(c *gin.Context) {
+	if photoid, err := strconv.Atoi(c.Param("photoID")); err == nil {
+		err := myStore.DeletePhoto(photoid)
 		if err == nil {
 			c.JSON(http.StatusOK, []*entity.Joke{})
 		} else {

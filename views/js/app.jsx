@@ -1,3 +1,4 @@
+
 class App extends React.Component {
   render() {
     if (this.loggedIn) {
@@ -27,7 +28,8 @@ class LoggedIn extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      jokes: []
+      jokes: [],
+      photos: []
     };
 
     this.serverRequest = this.serverRequest.bind(this);
@@ -37,6 +39,12 @@ class LoggedIn extends React.Component {
     $.get("http://localhost:3000/api/jokes", res => {
       this.setState({
         jokes: res
+      });
+    });
+
+    $.get("http://localhost:3000/api/photos", res => {
+      this.setState({
+        photos: res
       });
     });
   }
@@ -56,6 +64,11 @@ class LoggedIn extends React.Component {
           <div className="row">
             {this.state.jokes.map(function (joke, i) {
               return (<Joke key={i} joke={joke} />);
+            })}
+          </div>
+          <div className="row">
+            {this.state.photos.map(function (photo, i) {
+              return (<Photo key={i} photo={photo} />);
             })}
           </div>
         </div>
@@ -170,6 +183,55 @@ class Joke extends React.Component {
               <span className="glyphicon glyphicon-thumbs-up"></span>
             </a>
 
+            <a onClick={this.delete} className="btn btn-default">
+              <span className="glyphicon glyphicon-trash"></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
+}
+
+class Photo extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      liked: "",
+      jokes: [],
+    };
+    this.delete = this.delete.bind(this);
+  }
+
+  delete() {
+    console.log("ASLDJLKSAJD")
+    let photo = this.props.photo;
+    $.post(
+      "http://localhost:3000/api/photos/delete/" + photo.id,
+      {},
+      res => {
+        console.log("res... ", res);
+        this.props.jokes = res;
+      }
+    );
+    window.location.reload();
+  }
+
+  mystyle = {
+    height: "200px",
+    width: "200px",
+    overflow: "hidden"
+  };
+
+  render() {
+    return (
+      <div className="col-xs-4">
+        <div className="panel panel-default">
+          <div className="panel-heading">#{this.props.photo.id} </div>
+          <div className="panel-body">
+            <img style={this.mystyle} src={"../../saved/" + this.props.photo.FilePath} ></img>
+          </div>
+          <div className="panel-footer">
             <a onClick={this.delete} className="btn btn-default">
               <span className="glyphicon glyphicon-trash"></span>
             </a>
