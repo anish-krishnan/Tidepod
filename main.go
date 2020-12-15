@@ -1,32 +1,29 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
+	"github.com/anish-krishnan/Tidepod/entity"
 	"github.com/anish-krishnan/Tidepod/store"
-	"github.com/anish-krishnan/Tidepod/types"
-
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var myStore store.Store
 
 func main() {
-	connString := "dbname=jokes_db sslmode=disable"
-	db, err := sql.Open("postgres", connString)
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		panic("failed to connect database")
 	}
 
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
+	db.AutoMigrate(&entity.Joke{})
 
 	myStore = &store.DBStore{DB: db}
 
@@ -58,8 +55,32 @@ func main() {
 	api.POST("/jokes/like/:jokeID", LikeJoke)
 	api.POST("/jokes/delete/:jokeID", DeleteJokeHandler)
 
+	api.POST("/upload", UploadHandler)
+
 	// Start and run the server
 	router.Run(":3000")
+}
+
+// Uploads multiple files to "saved/" folder
+func UploadHandler(c *gin.Context) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		panic(err)
+	}
+
+	files := form.File["files"]
+
+	for _, file := range files {
+		filename := filepath.Base(file.Filename)
+		if err := c.SaveUploadedFile(file, "saved/"+filename); err != nil {
+			panic(err)
+			c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
+			return
+		}
+	}
+
+	c.String(http.StatusOK, fmt.Sprintf("uploaded %d files!", len(files)))
 }
 
 // JokeHandler retrieves a list of available jokes
@@ -78,7 +99,7 @@ func JokeHandler(c *gin.Context) {
 func CreateJokeHandler(c *gin.Context) {
 	err := myStore.CreateJoke(c.Param("joke"))
 	if err == nil {
-		c.JSON(http.StatusOK, []*types.Joke{})
+		c.JSON(http.StatusOK, []*entity.Joke{})
 	} else {
 		panic(err)
 	}
@@ -86,11 +107,10 @@ func CreateJokeHandler(c *gin.Context) {
 
 // DeleteJokeHandler
 func DeleteJokeHandler(c *gin.Context) {
-	fmt.Println("ANISH DELTE HANDLER")
 	if jokeid, err := strconv.Atoi(c.Param("jokeID")); err == nil {
 		err := myStore.DeleteJoke(jokeid)
 		if err == nil {
-			c.JSON(http.StatusOK, []*types.Joke{})
+			c.JSON(http.StatusOK, []*entity.Joke{})
 		} else {
 			panic(err)
 		}
@@ -102,7 +122,7 @@ func LikeJoke(c *gin.Context) {
 	if jokeid, err := strconv.Atoi(c.Param("jokeID")); err == nil {
 		err := myStore.LikeJoke(jokeid)
 		if err == nil {
-			c.JSON(http.StatusOK, []*types.Joke{})
+			c.JSON(http.StatusOK, []*entity.Joke{})
 		} else {
 			panic(err)
 		}

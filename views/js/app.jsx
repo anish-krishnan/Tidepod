@@ -60,6 +60,7 @@ class LoggedIn extends React.Component {
           </div>
         </div>
         <CreateJokeForm />
+        <UploadPhotoForm />
       </div>
     )
   }
@@ -94,6 +95,21 @@ class CreateJokeForm extends React.Component {
         <input type="submit" value="Submit" />
       </form>
     );
+  }
+}
+
+class UploadPhotoForm extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+      <form enctype="multipart/form-data" action="http://localhost:3000/api/upload" method="post">
+        Files: <input type="file" name="files" multiple /><br /><br />
+        <input type="submit" value="Submit" />
+      </form>
+    )
   }
 }
 
