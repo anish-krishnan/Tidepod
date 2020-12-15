@@ -225,13 +225,13 @@ class Photo extends React.Component {
 
   render() {
     return (
-      <div className="col-xs-4">
+      <div className="col-xs-3">
         <div className="panel panel-default">
-          <div className="panel-heading">#{this.props.photo.id} </div>
           <div className="panel-body">
             <img style={this.mystyle} src={"../../saved/" + this.props.photo.FilePath} ></img>
           </div>
           <div className="panel-footer">
+            #{this.props.photo.id}
             <a onClick={this.delete} className="btn btn-default">
               <span className="glyphicon glyphicon-trash"></span>
             </a>
