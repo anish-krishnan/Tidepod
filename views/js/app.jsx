@@ -218,20 +218,21 @@ class Photo extends React.Component {
   }
 
   mystyle = {
-    height: "200px",
-    width: "200px",
-    overflow: "hidden"
+    width: "100%",
   };
 
   render() {
     return (
-      <div className="col-xs-3">
+      <div className="col-xs-4">
         <div className="panel panel-default">
-          <div className="panel-body">
-            <img style={this.mystyle} src={"../../saved/" + this.props.photo.FilePath} ></img>
-          </div>
+          <img style={this.mystyle} src={"../../saved/" + this.props.photo.FilePath} ></img>
           <div className="panel-footer">
-            #{this.props.photo.id}
+            <p>#{this.props.photo.id}</p>
+            <p>Camera Model {this.props.photo.CameraModel}</p>
+            <p>Location ({this.props.photo.Latitude},{this.props.photo.Longitude})</p>
+            <p>Timestamp {this.props.photo.Timestamp}</p>
+            <p>FocalLength {this.props.photo.FocalLength}</p>
+            <p>Aperture {this.props.photo.ApertureFStop}</p>
             <a onClick={this.delete} className="btn btn-default">
               <span className="glyphicon glyphicon-trash"></span>
             </a>

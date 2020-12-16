@@ -1,9 +1,11 @@
 package store
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/anish-krishnan/Tidepod/entity"
+	"github.com/rwcarlsen/goexif/exif"
 	"gorm.io/gorm"
 )
 
@@ -48,7 +50,61 @@ func (store *DBStore) GetJokes() ([]*entity.Joke, error) {
 }
 
 func (store *DBStore) CreatePhoto(filename string) error {
-	store.DB.Create(&entity.Photo{FilePath: filename})
+	var newPhoto entity.Photo
+	newPhoto.FilePath = filename
+
+	file, err := os.Open("saved/" + filename)
+	if err != nil {
+		panic(err)
+	}
+
+	exifInfo, err := exif.Decode(file)
+	if err != nil {
+		panic(err)
+	}
+
+	// Camera Model
+	cameraModel, err := exifInfo.Get(exif.Model)
+	if err == nil {
+		newPhoto.CameraModel = cameraModel.String()
+	}
+
+	// Location
+	lat, long, err := exifInfo.LatLong()
+	fmt.Println("loc ", lat, long, err)
+	if err == nil {
+		newPhoto.Latitude = lat
+		newPhoto.Longitude = long
+	}
+
+	// Timestamp
+	tm, err := exifInfo.DateTime()
+	fmt.Println("datetime ", tm, err)
+	if err == nil {
+		newPhoto.Timestamp = tm
+	}
+
+	// Focal Length
+	focal, err := exifInfo.Get(exif.FocalLength)
+	if err == nil {
+		numer, denom, err := focal.Rat2(0)
+		if err == nil {
+			newPhoto.FocalLength = float64(numer) / float64(denom)
+		}
+	}
+
+	// Aperture
+	aperture, err := exifInfo.Get(exif.FNumber)
+	if err == nil {
+		numer, denom, err := aperture.Rat2(0)
+		if err == nil {
+			newPhoto.ApertureFStop = float64(numer) / float64(denom)
+		}
+	}
+
+	fmt.Println("newPhoto ", newPhoto)
+
+	store.DB.Create(&newPhoto)
 	return nil
 }
 
