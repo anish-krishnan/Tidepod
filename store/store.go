@@ -104,18 +104,29 @@ func (store *DBStore) CreatePhoto(filename string) error {
 		}
 	}
 
+	store.DB.Create(&newPhoto)
+
+	// Label image in parallel
+	go runLabeler(store.DB, &newPhoto)
+
+	return file.Close()
+}
+
+func runLabeler(db *gorm.DB, photo *entity.Photo) {
 	// Get Labels
-	labels, err := object_detection.GetLabelsForFile(filename)
+	labels, err := object_detection.GetLabelsForFile(photo.FilePath)
+	if err != nil {
+		panic(err)
+	}
 	labelEntries := []entity.Label{}
 	for _, label := range labels {
 		var labelEntry entity.Label
-		store.DB.Where("label_name = ?", label).First(&labelEntry)
+		db.Where("label_name = ?", label).First(&labelEntry)
 		labelEntries = append(labelEntries, labelEntry)
 	}
-	newPhoto.Labels = labelEntries
+	photo.Labels = labelEntries
 
-	store.DB.Create(&newPhoto)
-	return file.Close()
+	db.Save(&photo)
 }
 
 func (store *DBStore) GetPhotos() ([]*entity.Photo, error) {
