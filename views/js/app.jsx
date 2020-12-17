@@ -204,10 +204,10 @@ class Photo extends React.Component {
   }
 
   delete() {
-    console.log("ASLDJLKSAJD")
     let photo = this.props.photo;
+    console.log("ASLDJLKSAJD", photo.ID)
     $.post(
-      "http://localhost:3000/api/photos/delete/" + photo.id,
+      "http://localhost:3000/api/photos/delete/" + photo.ID,
       {},
       res => {
         console.log("res... ", res);
@@ -227,12 +227,17 @@ class Photo extends React.Component {
         <div className="panel panel-default">
           <img style={this.mystyle} src={"../../saved/" + this.props.photo.FilePath} ></img>
           <div className="panel-footer">
-            <p>#{this.props.photo.id}</p>
+            <p>#{this.props.photo.ID}</p>
             <p>Camera Model {this.props.photo.CameraModel}</p>
             <p>Location ({this.props.photo.Latitude},{this.props.photo.Longitude})</p>
             <p>Timestamp {this.props.photo.Timestamp}</p>
             <p>FocalLength {this.props.photo.FocalLength}</p>
             <p>Aperture {this.props.photo.ApertureFStop}</p>
+
+            {this.props.photo.Labels.map(function (label, i) {
+              return (<p>LABELS: {label.LabelName}</p>);
+            })}
+
             <a onClick={this.delete} className="btn btn-default">
               <span className="glyphicon glyphicon-trash"></span>
             </a>

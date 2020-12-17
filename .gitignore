@@ -1,2 +1,3 @@
 saved/*
 *.db
+object_detection/faster_rcnn_openimages_v4_inception_resnet_v2_1/*

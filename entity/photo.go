@@ -2,9 +2,9 @@ package entity
 
 import "time"
 
-// Photo contains information about a single photos
+// Photo contains information about a single photo
 type Photo struct {
-	ID            int `json:"id" binding:"required"`
+	ID            int `gorm:"primary_key" yaml:"-"`
 	FilePath      string
 	CameraModel   string
 	Latitude      float64
@@ -12,4 +12,5 @@ type Photo struct {
 	Timestamp     time.Time
 	FocalLength   float64
 	ApertureFStop float64
+	Labels        []Label `gorm:"many2many:photo_labels;"`
 }

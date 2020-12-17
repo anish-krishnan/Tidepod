@@ -5,8 +5,10 @@ import (
 	"os"
 
 	"github.com/anish-krishnan/Tidepod/entity"
+	"github.com/anish-krishnan/Tidepod/object_detection"
 	"github.com/rwcarlsen/goexif/exif"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Store interface {
@@ -102,15 +104,23 @@ func (store *DBStore) CreatePhoto(filename string) error {
 		}
 	}
 
-	fmt.Println("newPhoto ", newPhoto)
+	// Get Labels
+	labels, err := object_detection.GetLabelsForFile(filename)
+	labelEntries := []entity.Label{}
+	for _, label := range labels {
+		var labelEntry entity.Label
+		store.DB.Where("label_name = ?", label).First(&labelEntry)
+		labelEntries = append(labelEntries, labelEntry)
+	}
+	newPhoto.Labels = labelEntries
 
 	store.DB.Create(&newPhoto)
-	return nil
+	return file.Close()
 }
 
 func (store *DBStore) GetPhotos() ([]*entity.Photo, error) {
 	var photos []*entity.Photo
-	store.DB.Find(&photos)
+	store.DB.Preload(clause.Associations).Find(&photos)
 	return photos, nil
 }
 
@@ -128,6 +138,7 @@ func (store *DBStore) DeletePhoto(photoID int) error {
 	}
 
 	// Delete from DB next
+	store.DB.Model(&photo).Association("Labels").Clear()
 	store.DB.Delete(&entity.Photo{}, photoID)
 	return nil
 }
