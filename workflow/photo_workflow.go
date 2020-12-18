@@ -2,9 +2,11 @@ package workflow
 
 import (
 	"os"
+	"time"
 
 	"github.com/anish-krishnan/Tidepod/entity"
 	"github.com/anish-krishnan/Tidepod/object_detection"
+	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	"gorm.io/gorm"
 )
@@ -12,6 +14,8 @@ import (
 // LabelPhotoWorkflow takes a photo and runs it through the tensorflow object
 // detection module. Updates database entry appropriately with labels
 func LabelPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
+	time.Sleep(5)
+
 	// Get Labels
 	labels, err := object_detection.GetLabelsForFile(photo.FilePath)
 	if err != nil {
@@ -71,5 +75,21 @@ func GetEXIFWorkflow(photo *entity.Photo, file *os.File) {
 		if err == nil {
 			photo.ApertureFStop = float64(numer) / float64(denom)
 		}
+	}
+}
+
+func CreateThumbnailWorkflow(photo *entity.Photo) {
+	// use all CPU cores for maximum performance
+	// runtime.GOMAXPROCS(runtime.NumCPU())
+
+	img, err := imaging.Open("photo_storage/saved/" + photo.FilePath)
+	if err != nil {
+		panic(err)
+	}
+	thumb := imaging.Thumbnail(img, 200, 200, imaging.CatmullRom)
+
+	err = imaging.Save(thumb, "photo_storage/thumbnails/"+photo.FilePath)
+	if err != nil {
+		panic(err)
 	}
 }

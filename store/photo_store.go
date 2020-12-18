@@ -35,6 +35,8 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	}
 	defer file.Close()
 
+	workflow.CreateThumbnailWorkflow(&newPhoto)
+
 	workflow.GetEXIFWorkflow(&newPhoto, file)
 
 	// Label image in parallel
@@ -56,7 +58,13 @@ func (store *DBStore) DeletePhoto(photoID int) error {
 
 	relativeFilePath := "./photo_storage/saved/" + photo.FilePath
 	err := os.Remove(relativeFilePath)
+	if err != nil {
+		panic(err)
+		return err
+	}
 
+	relativeThumbFilePath := "./photo_storage/thumbnails/" + photo.FilePath
+	err = os.Remove(relativeThumbFilePath)
 	if err != nil {
 		panic(err)
 		return err
