@@ -18,10 +18,11 @@ func GetLabelsForFile(filename string) ([]string, error) {
 
 	defer model.CloseSession()
 
-	file, err := os.Open("saved/" + filename)
+	file, err := os.Open("photo_storage/saved/" + filename)
 	if err != nil {
 		panic(err)
 	}
+	defer file.Close()
 
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
@@ -40,5 +41,5 @@ func GetLabelsForFile(filename string) ([]string, error) {
 		labels = append(labels, label)
 	}
 
-	return labels, file.Close()
+	return labels, nil
 }

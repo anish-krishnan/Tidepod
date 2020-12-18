@@ -1,4 +1,5 @@
 
+
 class App extends React.Component {
   render() {
     if (this.loggedIn) {
@@ -126,6 +127,9 @@ class UploadPhotoForm extends React.Component {
   }
 }
 
+
+
+
 class Joke extends React.Component {
   constructor(props) {
     super(props);
@@ -225,7 +229,7 @@ class Photo extends React.Component {
     return (
       <div className="col-xs-4">
         <div className="panel panel-default">
-          <img style={this.mystyle} src={"../../saved/" + this.props.photo.FilePath} ></img>
+          <img style={this.mystyle} src={"../../photo_storage/saved/" + this.props.photo.FilePath} ></img>
           <div className="panel-footer">
             <p>#{this.props.photo.ID}</p>
             <p>Camera Model {this.props.photo.CameraModel}</p>

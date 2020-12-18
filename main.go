@@ -15,7 +15,7 @@ func main() {
 
 	// Serve frontend static files
 	router.Use(static.Serve("/", static.LocalFile("./views", true)))
-	router.Static("/saved", "./saved")
+	router.Static("/photo_storage", "./photo_storage")
 
 	// Setup route group for the API
 	api := router.Group("/api")

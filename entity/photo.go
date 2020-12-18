@@ -1,6 +1,8 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 // Photo contains information about a single photo
 type Photo struct {

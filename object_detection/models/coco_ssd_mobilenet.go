@@ -30,7 +30,6 @@ func NewCoco() *Coco {
 
 // Load loads the ssd_mobilenet_v1_coco_2018_01_28 SavedModel.
 func (c *Coco) Load() error {
-	fmt.Println("ANISH ", path.Join(basepath, modelPath, "/"))
 	model, err := tf.LoadSavedModel(path.Join(basepath, modelPath, "/"), []string{"serve"}, nil)
 	if err != nil {
 		return fmt.Errorf("Error loading model: %v", err)

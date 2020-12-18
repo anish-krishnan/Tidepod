@@ -22,11 +22,13 @@ func GetPhotosHandler(c *gin.Context) {
 	}
 }
 
-// Uploads multiple files to "saved/" folder
+// Uploads multiple files to "photo_storage/" folder
 func UploadHandler(c *gin.Context) {
+
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		fmt.Println("error getting multipartform", err)
 		panic(err)
 	}
 
@@ -34,19 +36,20 @@ func UploadHandler(c *gin.Context) {
 
 	for _, file := range files {
 		filename := filepath.Base(file.Filename)
-		if err := c.SaveUploadedFile(file, "saved/"+filename); err != nil {
-			c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
-			panic(err)
-			return
-		}
+		// if err := c.SaveUploadedFile(file, "photo_storage/temp/"+filename); err != nil {
+		// 	c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
+		// 	panic(err)
+		// 	return
+		// }
 
-		err := MyStore.CreatePhoto(filename)
+		err := MyStore.CreatePhoto(filename, file)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	c.String(http.StatusOK, fmt.Sprintf("uploaded %d files!", len(files)))
+	// c.String(http.StatusOK, fmt.Sprintf("uploaded %d files!", len(files)))
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(fmt.Sprintf("uploaded %d files! <a href='http://localhost:3000'>back</a>", len(files))))
 }
 
 // Delete a photo

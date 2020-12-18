@@ -23,7 +23,6 @@ func NewRcnn() *Rcnn {
 
 // Load loads the ssd_mobilenet_v1_Rcnn_2018_01_28 SavedModel.
 func (c *Rcnn) Load() error {
-	fmt.Println("ANISH ", path.Join(basepath, fastModelPath, "/"))
 	model, err := tf.LoadSavedModel(path.Join(basepath, fastModelPath, "/"), []string{""}, nil)
 	if err != nil {
 		return fmt.Errorf("Error loading model: %v", err)
