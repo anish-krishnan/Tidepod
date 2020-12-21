@@ -12,9 +12,11 @@ import (
 
 // Get photos
 func GetPhotosHandler(c *gin.Context) {
+
 	photos, err := MyStore.GetPhotos()
 
 	if err == nil {
+		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Content-Type", "application/json")
 		c.JSON(http.StatusOK, photos)
 	} else {

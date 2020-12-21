@@ -205,6 +205,7 @@ class Photo extends React.Component {
       jokes: [],
     };
     this.delete = this.delete.bind(this);
+    this.handlePhotoClick = this.handlePhotoClick.bind(this);
   }
 
   delete() {
@@ -221,6 +222,12 @@ class Photo extends React.Component {
     window.location.reload();
   }
 
+  handlePhotoClick() {
+    this.props.router.push({
+      pathname: "/photo",
+    })
+  }
+
   mystyle = {
     width: "100%",
   };
@@ -233,7 +240,7 @@ class Photo extends React.Component {
           <div className="panel-footer">
             <p>#{this.props.photo.ID}</p>
             <p>Camera Model {this.props.photo.CameraModel}</p>
-            <p>Location ({this.props.photo.Latitude},{this.props.photo.Longitude})</p>
+            <p>Location: {this.props.photo.LocationString}</p>
             <p>Timestamp {this.props.photo.Timestamp}</p>
             <p>FocalLength {this.props.photo.FocalLength}</p>
             <p>Aperture {this.props.photo.ApertureFStop}</p>
@@ -242,9 +249,13 @@ class Photo extends React.Component {
               return (<p>LABELS: {label.LabelName}</p>);
             })}
 
+            <a onClick={this.handlePhotoClick} className="btn btn-default">
+              <span className="glyphicon glyphicon-resize-full"></span>
+            </a>
             <a onClick={this.delete} className="btn btn-default">
               <span className="glyphicon glyphicon-trash"></span>
             </a>
+
           </div>
         </div>
       </div>

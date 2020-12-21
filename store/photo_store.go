@@ -35,9 +35,10 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	}
 	defer file.Close()
 
-	workflow.CreateThumbnailWorkflow(&newPhoto)
-
 	workflow.GetEXIFWorkflow(&newPhoto, file)
+	store.DB.Save(newPhoto)
+	go workflow.CreateThumbnailWorkflow(&newPhoto)
+	go workflow.GetReadableLocationWorkflow(store.DB, &newPhoto)
 
 	// Label image in parallel
 	go workflow.LabelPhotoWorkflow(store.DB, &newPhoto)

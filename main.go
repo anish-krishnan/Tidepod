@@ -38,6 +38,10 @@ func main() {
 	api.POST("/photos/delete/:photoID", controller.DeletePhotoHandler)
 	api.POST("/upload", controller.UploadHandler)
 
+	// Labels Routes
+	api.GET("/labels", controller.GetLabelsHandler)
+	api.GET("/label/:labelID", controller.GetLabelHandler)
+
 	// Start and run the server
 	router.Run(":3000")
 }

@@ -16,6 +16,9 @@ type Store interface {
 	CreatePhoto(filename string, uploadedFile *multipart.FileHeader) error
 	DeletePhoto(photoID int) error
 	GetPhotos() ([]*entity.Photo, error)
+
+	GetLabels() ([]*entity.Label, error)
+	GetLabel(labelID int) (entity.Label, error)
 }
 
 type DBStore struct {

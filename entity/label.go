@@ -4,4 +4,5 @@ package entity
 type Label struct {
 	ID        int `gorm:"primary_key" yaml:"-"`
 	LabelName string
+	Photos    []Photo `gorm:"many2many:photo_labels;"`
 }

@@ -1,21 +1,33 @@
 package workflow
 
 import (
+	"io/ioutil"
+	"log"
 	"os"
-	"time"
 
 	"github.com/anish-krishnan/Tidepod/entity"
 	"github.com/anish-krishnan/Tidepod/object_detection"
+	"github.com/codingsince1985/geo-golang"
+	"github.com/codingsince1985/geo-golang/mapquest/open"
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	"gorm.io/gorm"
 )
 
+var geocoder geo.Geocoder
+
+func init() {
+	mapquestApiKeyRaw, err := ioutil.ReadFile("credentials/MapQuestAPIKEY.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	mapquestAPIKEY := string(mapquestApiKeyRaw[:len(mapquestApiKeyRaw)-1])
+	geocoder = open.Geocoder(string(mapquestAPIKEY))
+}
+
 // LabelPhotoWorkflow takes a photo and runs it through the tensorflow object
 // detection module. Updates database entry appropriately with labels
 func LabelPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
-	time.Sleep(5)
-
 	// Get Labels
 	labels, err := object_detection.GetLabelsForFile(photo.FilePath)
 	if err != nil {
@@ -27,9 +39,12 @@ func LabelPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
 		db.Where("label_name = ?", label).First(&labelEntry)
 		labelEntries = append(labelEntries, labelEntry)
 	}
-	photo.Labels = labelEntries
+	// photo.Labels = labelEntries
 
-	db.Save(&photo)
+	var newPhoto entity.Photo
+	db.First(&newPhoto, photo.ID)
+	newPhoto.Labels = labelEntries
+	db.Save(newPhoto)
 }
 
 // GetEXIFWorkflow extracts EXIF information from image. Updates database
@@ -78,6 +93,8 @@ func GetEXIFWorkflow(photo *entity.Photo, file *os.File) {
 	}
 }
 
+// CreateThumbnailWorkflow takes a photo, creates a 200x200 thumbnail
+// and saves it to the photo_storage/thumbnails/ directory
 func CreateThumbnailWorkflow(photo *entity.Photo) {
 	// use all CPU cores for maximum performance
 	// runtime.GOMAXPROCS(runtime.NumCPU())
@@ -92,4 +109,18 @@ func CreateThumbnailWorkflow(photo *entity.Photo) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// GetReadableLocationWorkflow takes a photo, and uses the geo-coords
+// to find a human readable address and updates the db entry appropriately
+func GetReadableLocationWorkflow(db *gorm.DB, photo *entity.Photo) {
+	if photo.Latitude == 0.0 && photo.Longitude == 0.0 {
+		return
+	}
+
+	address, err := geocoder.ReverseGeocode(photo.Latitude, photo.Longitude)
+	if err != nil {
+		panic(err)
+	}
+	db.Model(&photo).Updates(entity.Photo{LocationString: address.FormattedAddress})
 }
