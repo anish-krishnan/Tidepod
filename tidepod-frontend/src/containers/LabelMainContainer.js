@@ -12,7 +12,6 @@ class LabelMainContainer extends React.Component {
     fetch("http://localhost:3000/api/label/" + this.state.labelId)
       .then(resp => resp.json())
       .then(label => {
-        console.log(label)
         this.setState({
           label: label,
           photos: label.Photos

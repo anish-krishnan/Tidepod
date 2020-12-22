@@ -1,8 +1,11 @@
 package workflow
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/anish-krishnan/Tidepod/entity"
@@ -15,13 +18,14 @@ import (
 )
 
 var geocoder geo.Geocoder
+var mapquestAPIKEY string
 
 func init() {
 	mapquestApiKeyRaw, err := ioutil.ReadFile("credentials/MapQuestAPIKEY.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
-	mapquestAPIKEY := string(mapquestApiKeyRaw[:len(mapquestApiKeyRaw)-1])
+	mapquestAPIKEY = string(mapquestApiKeyRaw[:len(mapquestApiKeyRaw)-1])
 	geocoder = open.Geocoder(string(mapquestAPIKEY))
 }
 
@@ -118,9 +122,28 @@ func GetReadableLocationWorkflow(db *gorm.DB, photo *entity.Photo) {
 		return
 	}
 
-	address, err := geocoder.ReverseGeocode(photo.Latitude, photo.Longitude)
+	request := fmt.Sprintf("https://www.mapquestapi.com/geocoding/v1/reverse?key=%s&location=%f%%2C%f&outFormat=json&thumbMaps=false",
+		mapquestAPIKEY,
+		photo.Latitude,
+		photo.Longitude)
+
+	resp, err := http.Get(request)
 	if err != nil {
 		panic(err)
 	}
-	db.Model(&photo).Updates(entity.Photo{LocationString: address.FormattedAddress})
+
+	var result map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&result)
+	location := result["results"].([]interface{})[0].(map[string]interface{})["locations"].([]interface{})[0].(map[string]interface{})
+
+	street := location["street"]
+	neighborhood := location["adminArea6"]
+	city := location["adminArea5"]
+	postalCode := location["postalCode"]
+	county := location["adminArea4"]
+	state := location["adminArea3"]
+	country := location["adminArea1"]
+
+	formattedAddress := fmt.Sprintf("%s, %s %s, %s, %s, %s, %s", street, neighborhood, city, county, postalCode, state, country)
+	db.Model(&photo).Updates(entity.Photo{LocationString: formattedAddress})
 }

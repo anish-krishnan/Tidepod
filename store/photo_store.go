@@ -52,6 +52,12 @@ func (store *DBStore) GetPhotos() ([]*entity.Photo, error) {
 	return photos, nil
 }
 
+func (store *DBStore) GetPhoto(photoID int) (entity.Photo, error) {
+	var photo entity.Photo
+	store.DB.Preload(clause.Associations).First(&photo, photoID)
+	return photo, nil
+}
+
 func (store *DBStore) DeletePhoto(photoID int) error {
 	// Get the Photo entry to delete from filesystem first
 	var photo entity.Photo

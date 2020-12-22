@@ -3,6 +3,7 @@ import '../App.css';
 
 import Nav from '../containers/Nav'
 import HomeMainContainer from './HomeMainContainer'
+import PhotoMainContainer from '../containers/PhotoMainContainer'
 import LabelMainContainer from '../containers/LabelMainContainer'
 import LabelsMainContainer from '../containers/LabelsMainContainer'
 import Photo from '../components/Photo'
@@ -22,6 +23,7 @@ function App() {
 
         <Switch>
           <Route path='/' component={HomeMainContainer} exact />
+          <Route path='/photo/:photoId' component={PhotoMainContainer} />
           <Route path='/labels' component={LabelsMainContainer} />
           <Route path='/label/:labelId' component={LabelMainContainer} />
           <Route component={Error} />

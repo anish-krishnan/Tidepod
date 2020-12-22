@@ -24,6 +24,22 @@ func GetPhotosHandler(c *gin.Context) {
 	}
 }
 
+// Get a specific photo
+func GetPhotoHandler(c *gin.Context) {
+	if photoid, err := strconv.Atoi(c.Param("photoID")); err == nil {
+		photo, err := MyStore.GetPhoto(photoid)
+		if err == nil {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Content-Type", "application/json")
+			c.JSON(http.StatusOK, photo)
+		} else {
+			panic(err)
+		}
+	} else {
+		panic(err)
+	}
+}
+
 // Uploads multiple files to "photo_storage/" folder
 func UploadHandler(c *gin.Context) {
 

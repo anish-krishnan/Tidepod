@@ -1,4 +1,11 @@
 import React from 'react'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
+import Button from 'react-bootstrap/Button';
 
 class Photo extends React.Component {
 
@@ -23,19 +30,24 @@ class Photo extends React.Component {
           <p>FocalLength {this.props.photo.FocalLength}</p>
           <p>Aperture {this.props.photo.ApertureFStop}</p>
 
-          {this.props.photo.Labels.map(function (label, i) {
-            return (<p>LABELS: {label.LabelName}</p>);
-          })}
+          <div>
+            {this.props.photo.Labels.map(function (label, i) {
+              return (<Link to={`/label/${label.ID}`}><Button variant="secondary">{label.LabelName}</Button></Link>);
+            })}
+          </div>
 
-          <button type="button" onClick={this.handleMinimize} className="btn btn-default">
-            <span className="glyphicon glyphicon-resize-small" ></span>Minimize
+
+          <div>
+            <button type="button" class="btn btn-warning" onClick={this.handleMinimize} >
+              <span className="glyphicon glyphicon-resize-small" ></span>Minimize
           </button>
-          <button type="button" onClick={this.handleDelete} className="btn btn-default">
-            <span className="glyphicon glyphicon-trash"></span>Delete
+            <button type="button" class="btn btn-warning" onClick={this.handleDelete} >
+              <span className="glyphicon glyphicon-trash"></span>Delete
           </button>
+          </div>
 
         </div>
-      </div>
+      </div >
     )
   }
 }
