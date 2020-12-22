@@ -3,11 +3,14 @@ package workflow
 import (
 	"encoding/json"
 	"fmt"
+	"image"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
+	"github.com/Kagami/go-face"
 	"github.com/anish-krishnan/Tidepod/entity"
 	"github.com/anish-krishnan/Tidepod/object_detection"
 	"github.com/codingsince1985/geo-golang"
@@ -112,6 +115,50 @@ func CreateThumbnailWorkflow(photo *entity.Photo) {
 	err = imaging.Save(thumb, "photo_storage/thumbnails/"+photo.FilePath)
 	if err != nil {
 		panic(err)
+	}
+}
+
+// GetFacesWorkflow takes a photo, and finds all faces in the image. It creates a
+// new "Box" for each found face
+func GetFacesWorkflow(db *gorm.DB, photo *entity.Photo) {
+	fileParts := strings.Split(photo.FilePath, ".")
+	ext := fileParts[len(fileParts)-1]
+
+	img, err := imaging.Open("./photo_storage/saved/" + photo.FilePath)
+	if err != nil {
+		panic(err)
+	}
+
+	rec, err := face.NewRecognizer(".")
+	if err != nil {
+		panic(err)
+	}
+	defer rec.Close()
+
+	faces, err := rec.RecognizeFile("./photo_storage/saved/" + photo.FilePath)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, face := range faces {
+		box := entity.Box{
+			PhotoID: photo.ID,
+			MinX:    face.Rectangle.Min.X,
+			MinY:    face.Rectangle.Min.Y,
+			MaxX:    face.Rectangle.Max.X,
+			MaxY:    face.Rectangle.Max.Y,
+		}
+		db.Create(&box)
+		photo.Boxes = append(photo.Boxes, box)
+
+		boxFilename := fmt.Sprintf("%d.%s", box.ID, ext)
+		// crop out a rectangular region
+		croppedImg := imaging.Crop(img, image.Rect(box.MinX, box.MinY, box.MaxX, box.MaxY))
+		// save cropped image
+		err = imaging.Save(croppedImg, "./photo_storage/boxes/"+boxFilename)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 

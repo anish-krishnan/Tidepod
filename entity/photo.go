@@ -16,4 +16,5 @@ type Photo struct {
 	FocalLength    float64
 	ApertureFStop  float64
 	Labels         []Label `gorm:"many2many:photo_labels;"`
+	Boxes          []Box
 }

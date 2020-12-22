@@ -36,6 +36,9 @@ func init() {
 	db.Migrator().DropTable(&entity.Label{})
 	db.AutoMigrate(&entity.Label{})
 
+	db.AutoMigrate(&entity.Face{})
+	db.AutoMigrate(&entity.Box{})
+
 	labels, err := readLabels("object_detection/ssd_mobilenet_v1_coco_2018_01_28/saved_model/labels.txt")
 	if err != nil {
 		panic(err)

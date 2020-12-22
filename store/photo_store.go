@@ -36,6 +36,7 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	defer file.Close()
 
 	workflow.GetEXIFWorkflow(&newPhoto, file)
+	workflow.GetFacesWorkflow(store.DB, &newPhoto)
 	store.DB.Save(newPhoto)
 	go workflow.CreateThumbnailWorkflow(&newPhoto)
 	go workflow.GetReadableLocationWorkflow(store.DB, &newPhoto)

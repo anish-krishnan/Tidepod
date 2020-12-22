@@ -36,6 +36,14 @@ class Photo extends React.Component {
             })}
           </div>
 
+          <div>
+            {this.props.photo.Boxes.map(function (box, i) {
+              return (
+                <img class="img-thumbnail" height='100px' width='100px' src={"http://localhost:3000/photo_storage/boxes/" + box.ID + ".jpg"} ></img>
+
+              );
+            })}
+          </div>
 
           <div>
             <button type="button" class="btn btn-warning" onClick={this.handleMinimize} >

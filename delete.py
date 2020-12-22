@@ -33,5 +33,20 @@ for f in filelist:
         )
     )
 
+filelist = [
+    f
+    for f in os.listdir(
+        "/Users/anishkrishnan/src/github.com/anish-krishnan/Tidepod/photo_storage/boxes/"
+    )
+    if not f.startswith(".")
+]
+for f in filelist:
+    os.remove(
+        os.path.join(
+            "/Users/anishkrishnan/src/github.com/anish-krishnan/Tidepod/photo_storage/boxes/",
+            f,
+        )
+    )
+
 
 os.remove("/Users/anishkrishnan/src/github.com/anish-krishnan/Tidepod/test.db")
