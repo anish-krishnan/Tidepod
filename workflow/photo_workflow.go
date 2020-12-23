@@ -80,15 +80,15 @@ func GetEXIFWorkflow(photo *entity.Photo, file *os.File) {
 
 // RunPhotoWorkflow runs the workflows sequentially
 func RunPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
-	CreateThumbnailWorkflow(photo)
-	GetReadableLocationWorkflow(db, photo)
-	LabelPhotoWorkflow(db, photo)
-	GetFacesWorkflow(db, photo)
+	CreateThumbnail(photo)
+	GetReadableLocation(db, photo)
+	LabelPhoto(db, photo)
+	GetFaces(db, photo)
 }
 
-// LabelPhotoWorkflow takes a photo and runs it through the tensorflow object
+// LabelPhoto takes a photo and runs it through the tensorflow object
 // detection module. Updates database entry appropriately with labels
-func LabelPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
+func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
 	// Get Labels
 	labels, err := object_detection.GetLabelsForFile(photo.FilePath)
 	if err != nil {
@@ -108,9 +108,9 @@ func LabelPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
 	db.Save(newPhoto)
 }
 
-// CreateThumbnailWorkflow takes a photo, creates a 200x200 thumbnail
+// CreateThumbnail takes a photo, creates a 200x200 thumbnail
 // and saves it to the photo_storage/thumbnails/ directory
-func CreateThumbnailWorkflow(photo *entity.Photo) {
+func CreateThumbnail(photo *entity.Photo) {
 	// use all CPU cores for maximum performance
 	// runtime.GOMAXPROCS(runtime.NumCPU())
 
@@ -126,9 +126,9 @@ func CreateThumbnailWorkflow(photo *entity.Photo) {
 	}
 }
 
-// GetFacesWorkflow takes a photo, and finds all faces in the image. It creates a
+// GetFaces takes a photo, and finds all faces in the image. It creates a
 // new "Box" for each found face
-func GetFacesWorkflow(db *gorm.DB, photo *entity.Photo) {
+func GetFaces(db *gorm.DB, photo *entity.Photo) {
 	fileParts := strings.Split(photo.FilePath, ".")
 	ext := fileParts[len(fileParts)-1]
 
@@ -177,9 +177,88 @@ func GetFacesWorkflow(db *gorm.DB, photo *entity.Photo) {
 	db.Save(newPhoto)
 }
 
-// GetReadableLocationWorkflow takes a photo, and uses the geo-coords
+// ClassifyFaces trains on already labelled faces, and classifies all other photos
+func ClassifyFacesEngine(db *gorm.DB, photos []*entity.Photo) {
+	// Mapping photoIDs to respective boxes that are in train or test
+	var trainSet map[int][]int = make(map[int][]int)
+	var testSet map[int][]int = make(map[int][]int)
+
+	var photoMap map[int]*entity.Photo = make(map[int]*entity.Photo)
+	var faceMap map[int]string = make(map[int]string)
+
+	for _, photo := range photos {
+		for j, box := range photo.Boxes {
+			photoMap[photo.ID] = photo
+			if box.Face.ID != 0 {
+				trainSet[photo.ID] = append(trainSet[photo.ID], j)
+			} else {
+				testSet[photo.ID] = append(testSet[photo.ID], j)
+			}
+		}
+	}
+
+	fmt.Println("TRAIN", trainSet)
+	fmt.Println("TEST", testSet)
+
+	rec, err := face.NewRecognizer(".")
+	if err != nil {
+		panic(err)
+	}
+	defer rec.Close()
+
+	var samples []face.Descriptor
+	var labels []int32
+
+	for photoID, boxes := range trainSet {
+		fmt.Println("photoid:", photoID, "=>", "boxes:", boxes)
+		fmt.Println(photoMap[photoID])
+
+		faces, err := rec.RecognizeFile("./photo_storage/saved/" + photoMap[photoID].FilePath)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, boxIndex := range boxes {
+			samples = append(samples, faces[boxIndex].Descriptor)
+			labels = append(labels, int32(photoMap[photoID].Boxes[boxIndex].Face.ID))
+			faceMap[photoMap[photoID].Boxes[boxIndex].Face.ID] = photoMap[photoID].Boxes[boxIndex].Face.Name
+		}
+	}
+
+	fmt.Println("SAMPLES", samples)
+	fmt.Println("LABELS", labels)
+	rec.SetSamples(samples, labels)
+
+	var result map[int]string = make(map[int]string)
+
+	for photoID, boxes := range testSet {
+		fmt.Println("photoid:", photoID, "=>", "boxes:", boxes)
+
+		// faces, err := rec.RecognizeFile("./photo_storage/saved/" + photoMap[photoID].FilePath)
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		for _, boxIndex := range boxes {
+			fmt.Println("./photo_storage/boxes/" + photoMap[photoID].Boxes[boxIndex].FilePath)
+			face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + photoMap[photoID].Boxes[boxIndex].FilePath)
+			if err != nil {
+				panic(err)
+			}
+			if face == nil {
+				continue
+			}
+			label := rec.ClassifyThreshold(face.Descriptor, 0.2)
+			fmt.Println("CLASSIFED", photoID, boxIndex, label)
+			result[photoMap[photoID].Boxes[boxIndex].ID] = faceMap[label]
+		}
+	}
+	fmt.Println("RESULT", result)
+}
+
+// GetReadableLocation takes a photo, and uses the geo-coords
 // to find a human readable address and updates the db entry appropriately
-func GetReadableLocationWorkflow(db *gorm.DB, photo *entity.Photo) {
+func GetReadableLocation(db *gorm.DB, photo *entity.Photo) {
 	if photo.Latitude == 0.0 && photo.Longitude == 0.0 {
 		return
 	}

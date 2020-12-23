@@ -7,6 +7,8 @@ import {
 } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 
+import Box from '../components/Box'
+
 class Photo extends React.Component {
 
   handleMinimize = () => {
@@ -38,10 +40,7 @@ class Photo extends React.Component {
 
           <div>
             {this.props.photo.Boxes.map(function (box, i) {
-              return (
-                <img class="img-thumbnail" height='100px' width='100px' src={"http://localhost:3000/photo_storage/boxes/" + box.ID + ".jpg"} ></img>
-
-              );
+              return (<Box box={box} key={i} />);
             })}
           </div>
 

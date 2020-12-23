@@ -13,6 +13,13 @@ func main() {
 	// Set up routes
 	router := gin.Default()
 
+	// router.Use(cors.New(cors.Config{
+	// 	AllowedOrigins: []string{"http://localhost:3000", "http://localhost:3001"},
+	// 	AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+	// 	AllowedHeaders: []string{"Origin", "Content-Length", "Content-Type", "Access-Control-Allow-Origin"},
+	// 	ExposedHeaders: []string{"X-Total-Count"},
+	// }))
+
 	// Serve frontend static files
 	router.Use(static.Serve("/", static.LocalFile("./views", true)))
 	router.Static("/photo_storage", "./photo_storage")
@@ -42,6 +49,14 @@ func main() {
 	// Labels Routes
 	api.GET("/labels", controller.GetLabelsHandler)
 	api.GET("/label/:labelID", controller.GetLabelHandler)
+
+	// Faces Routes
+	api.GET("/faces", controller.GetFacesHandler)
+	api.GET("/face/:faceID", controller.GetFaceHandler)
+	api.GET("/classifyFaces", controller.ClassifyFacesHandler)
+
+	// Boxes Routes
+	api.GET("/boxes/assignface/:boxIDandName", controller.AssignFaceToBoxHandler)
 
 	// Start and run the server
 	router.Run(":3000")

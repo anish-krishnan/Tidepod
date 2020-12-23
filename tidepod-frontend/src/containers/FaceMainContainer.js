@@ -1,19 +1,23 @@
 import React from 'react'
-import PhotoGallery from './PhotoGallery'
+import PhotoGallery from '../containers/PhotoGallery'
 
-class HomeMainContainer extends React.Component {
+class LabelMainContainer extends React.Component {
   state = {
-    photos: []
+    face: "",
+    photos: [],
+    faceId: this.props.match.params.faceId
   }
 
   componentDidMount() {
-    fetch("http://localhost:3000/api/photos")
+    fetch("http://localhost:3000/api/face/" + this.state.faceId)
       .then(resp => resp.json())
-      .then(photos => {
+      .then(face => {
         this.setState({
-          photos: photos
+          face: face,
+          photos: face.Boxes.map(box => { return box.Photo })
         })
       })
+
   }
 
   handleDelete = (photo) => {
@@ -27,17 +31,10 @@ class HomeMainContainer extends React.Component {
       })
   }
 
-  handleUpload = () => {
-
-  }
-
   render() {
     return (
-      <div className="main-container" >
-        <form enctype="multipart/form-data" action="http://localhost:3000/api/upload" method="post">
-          <input type="file" name="files" multiple /><br /><br />
-          <input type="submit" value="upload" />
-        </form>
+      <div className="labels-main-container" >
+        <h3>Face Main Container : {this.state.face.Name}</h3>
         <PhotoGallery photos={this.state.photos} handleDelete={this.handleDelete} />
       </div>
     )
@@ -45,4 +42,4 @@ class HomeMainContainer extends React.Component {
 }
 
 
-export default HomeMainContainer;
+export default LabelMainContainer;

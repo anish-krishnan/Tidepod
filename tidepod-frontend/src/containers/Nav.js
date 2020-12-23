@@ -23,6 +23,9 @@ function Nav() {
           <li class="nav-item">
             <Link class="nav-link" to="/labels">Labels</Link>
           </li>
+          <li class="nav-item">
+            <Link class="nav-link" to="/faces">Faces</Link>
+          </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Dropdown</a>

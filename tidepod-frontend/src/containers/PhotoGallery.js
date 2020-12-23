@@ -40,10 +40,9 @@ class PhotoGallery extends React.Component {
     } else {
       return (
         <div>
-          <h4>Gallery</h4>
           <Gallery onClick={this.onClick} photos={
             this.props.photos.map(photo => {
-              return { id: photo.ID, src: "http://localhost:3000/photo_storage/thumbnails/" + photo.FilePath }
+              return { id: photo.ID, src: "http://localhost:3000/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }
             })
           }
           />

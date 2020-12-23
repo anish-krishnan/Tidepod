@@ -21,7 +21,12 @@ type Store interface {
 	GetLabels() ([]*entity.Label, error)
 	GetLabel(labelID int) (entity.Label, error)
 
+	GetFaces() ([]*entity.Face, error)
+	GetFace(faceID int) (entity.Face, error)
+	ClassifyFaces() error
+
 	DeleteBox(box entity.Box) error
+	AssignFaceToBox(boxID int, faceName string) (entity.Box, error)
 }
 
 type DBStore struct {
