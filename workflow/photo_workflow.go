@@ -32,28 +32,6 @@ func init() {
 	geocoder = open.Geocoder(string(mapquestAPIKEY))
 }
 
-// LabelPhotoWorkflow takes a photo and runs it through the tensorflow object
-// detection module. Updates database entry appropriately with labels
-func LabelPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
-	// Get Labels
-	labels, err := object_detection.GetLabelsForFile(photo.FilePath)
-	if err != nil {
-		panic(err)
-	}
-	labelEntries := []entity.Label{}
-	for _, label := range labels {
-		var labelEntry entity.Label
-		db.Where("label_name = ?", label).First(&labelEntry)
-		labelEntries = append(labelEntries, labelEntry)
-	}
-	// photo.Labels = labelEntries
-
-	var newPhoto entity.Photo
-	db.First(&newPhoto, photo.ID)
-	newPhoto.Labels = labelEntries
-	db.Save(newPhoto)
-}
-
 // GetEXIFWorkflow extracts EXIF information from image. Updates database
 // entry appropriately with this information
 func GetEXIFWorkflow(photo *entity.Photo, file *os.File) {
@@ -98,6 +76,36 @@ func GetEXIFWorkflow(photo *entity.Photo, file *os.File) {
 			photo.ApertureFStop = float64(numer) / float64(denom)
 		}
 	}
+}
+
+// RunPhotoWorkflow runs the workflows sequentially
+func RunPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
+	CreateThumbnailWorkflow(photo)
+	GetReadableLocationWorkflow(db, photo)
+	LabelPhotoWorkflow(db, photo)
+	GetFacesWorkflow(db, photo)
+}
+
+// LabelPhotoWorkflow takes a photo and runs it through the tensorflow object
+// detection module. Updates database entry appropriately with labels
+func LabelPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
+	// Get Labels
+	labels, err := object_detection.GetLabelsForFile(photo.FilePath)
+	if err != nil {
+		panic(err)
+	}
+	labelEntries := []entity.Label{}
+	for _, label := range labels {
+		var labelEntry entity.Label
+		db.Where("label_name = ?", label).First(&labelEntry)
+		labelEntries = append(labelEntries, labelEntry)
+	}
+	// photo.Labels = labelEntries
+
+	var newPhoto entity.Photo
+	db.First(&newPhoto, photo.ID)
+	newPhoto.Labels = labelEntries
+	db.Save(newPhoto)
 }
 
 // CreateThumbnailWorkflow takes a photo, creates a 200x200 thumbnail
@@ -149,17 +157,24 @@ func GetFacesWorkflow(db *gorm.DB, photo *entity.Photo) {
 			MaxY:    face.Rectangle.Max.Y,
 		}
 		db.Create(&box)
-		photo.Boxes = append(photo.Boxes, box)
+		box.FilePath = fmt.Sprintf("%d.%s", box.ID, ext)
+		db.Save(&box)
 
-		boxFilename := fmt.Sprintf("%d.%s", box.ID, ext)
+		photo.Boxes = append(photo.Boxes, box)
 		// crop out a rectangular region
 		croppedImg := imaging.Crop(img, image.Rect(box.MinX, box.MinY, box.MaxX, box.MaxY))
+		// lower resolution
+		compresedCroppedImg := imaging.Thumbnail(croppedImg, 100, 100, imaging.CatmullRom)
 		// save cropped image
-		err = imaging.Save(croppedImg, "./photo_storage/boxes/"+boxFilename)
+		err = imaging.Save(compresedCroppedImg, "./photo_storage/boxes/"+box.FilePath)
 		if err != nil {
 			panic(err)
 		}
 	}
+	var newPhoto entity.Photo
+	db.First(&newPhoto, photo.ID)
+	newPhoto.Boxes = photo.Boxes
+	db.Save(newPhoto)
 }
 
 // GetReadableLocationWorkflow takes a photo, and uses the geo-coords

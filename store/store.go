@@ -20,6 +20,8 @@ type Store interface {
 
 	GetLabels() ([]*entity.Label, error)
 	GetLabel(labelID int) (entity.Label, error)
+
+	DeleteBox(box entity.Box) error
 }
 
 type DBStore struct {

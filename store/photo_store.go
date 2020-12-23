@@ -36,13 +36,14 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	defer file.Close()
 
 	workflow.GetEXIFWorkflow(&newPhoto, file)
-	workflow.GetFacesWorkflow(store.DB, &newPhoto)
 	store.DB.Save(newPhoto)
-	go workflow.CreateThumbnailWorkflow(&newPhoto)
-	go workflow.GetReadableLocationWorkflow(store.DB, &newPhoto)
 
-	// Label image in parallel
-	go workflow.LabelPhotoWorkflow(store.DB, &newPhoto)
+	// Start the photo workflow in parallel
+	go workflow.RunPhotoWorkflow(store.DB, &newPhoto)
+	// go workflow.GetFacesWorkflow(store.DB, &newPhoto)
+	// go workflow.CreateThumbnailWorkflow(&newPhoto)
+	// go workflow.GetReadableLocationWorkflow(store.DB, &newPhoto)
+	// go workflow.LabelPhotoWorkflow(store.DB, &newPhoto)
 
 	return nil
 }
@@ -62,7 +63,17 @@ func (store *DBStore) GetPhoto(photoID int) (entity.Photo, error) {
 func (store *DBStore) DeletePhoto(photoID int) error {
 	// Get the Photo entry to delete from filesystem first
 	var photo entity.Photo
-	store.DB.First(&photo, photoID)
+	store.DB.Preload(clause.Associations).First(&photo, photoID)
+
+	fmt.Println("Deleting photo: ", photo)
+
+	// Delete the boxes
+	for _, box := range photo.Boxes {
+		err := store.DeleteBox(box)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	relativeFilePath := "./photo_storage/saved/" + photo.FilePath
 	err := os.Remove(relativeFilePath)
