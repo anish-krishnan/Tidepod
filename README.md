@@ -1,6 +1,6 @@
 ![alt text](favicon.png)
 # Tidepod
-A self hosted photo management platform built with Go
+A self hosted photo management platform that supports automatic face recognition and object detection. Built with Go
 
 
 ## Motivation
