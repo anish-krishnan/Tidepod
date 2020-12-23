@@ -177,8 +177,64 @@ func GetFaces(db *gorm.DB, photo *entity.Photo) {
 	db.Save(newPhoto)
 }
 
-// ClassifyFaces trains on already labelled faces, and classifies all other photos
-func ClassifyFacesEngine(db *gorm.DB, photos []*entity.Photo) {
+// ClassifyFacesByBoxEngine trains on already labelled faces, and classifies all other photos
+func ClassifyFacesByBoxEngine(db *gorm.DB, boxes []*entity.Box) map[int]string {
+	// Mapping photoIDs to respective boxes that are in train or test
+	var trainSet []int
+	var testSet []int
+	var faceMap map[int]string = make(map[int]string)
+
+	for j, box := range boxes {
+		if box.Face.ID != 0 {
+			trainSet = append(trainSet, j)
+			faceMap[box.Face.ID] = box.Face.Name
+		} else {
+			testSet = append(testSet, j)
+		}
+	}
+
+	rec, err := face.NewRecognizer(".")
+	if err != nil {
+		panic(err)
+	}
+	defer rec.Close()
+
+	var samples []face.Descriptor
+	var labels []int32
+
+	for _, boxIndex := range trainSet {
+
+		face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + boxes[boxIndex].FilePath)
+		if face == nil || err != nil {
+			panic(err)
+		}
+
+		samples = append(samples, face.Descriptor)
+		labels = append(labels, int32(boxes[boxIndex].Face.ID))
+	}
+
+	rec.SetSamples(samples, labels)
+
+	var result map[int]string = make(map[int]string)
+
+	for _, boxIndex := range testSet {
+		face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + boxes[boxIndex].FilePath)
+		if err != nil {
+			panic(err)
+		}
+		if face == nil {
+			continue
+		}
+		label := rec.ClassifyThreshold(face.Descriptor, 0.2)
+		if label > 0 {
+			result[boxes[boxIndex].ID] = faceMap[label]
+		}
+	}
+	return result
+}
+
+// ClassifyFacesByPhotoEngine trains on already labelled faces, and classifies all other photos
+func ClassifyFacesByPhotoEngine(db *gorm.DB, photos []*entity.Photo) {
 	// Mapping photoIDs to respective boxes that are in train or test
 	var trainSet map[int][]int = make(map[int][]int)
 	var testSet map[int][]int = make(map[int][]int)
@@ -197,9 +253,6 @@ func ClassifyFacesEngine(db *gorm.DB, photos []*entity.Photo) {
 		}
 	}
 
-	fmt.Println("TRAIN", trainSet)
-	fmt.Println("TEST", testSet)
-
 	rec, err := face.NewRecognizer(".")
 	if err != nil {
 		panic(err)
@@ -210,8 +263,6 @@ func ClassifyFacesEngine(db *gorm.DB, photos []*entity.Photo) {
 	var labels []int32
 
 	for photoID, boxes := range trainSet {
-		fmt.Println("photoid:", photoID, "=>", "boxes:", boxes)
-		fmt.Println(photoMap[photoID])
 
 		faces, err := rec.RecognizeFile("./photo_storage/saved/" + photoMap[photoID].FilePath)
 		if err != nil {
@@ -225,22 +276,13 @@ func ClassifyFacesEngine(db *gorm.DB, photos []*entity.Photo) {
 		}
 	}
 
-	fmt.Println("SAMPLES", samples)
-	fmt.Println("LABELS", labels)
 	rec.SetSamples(samples, labels)
 
 	var result map[int]string = make(map[int]string)
 
 	for photoID, boxes := range testSet {
-		fmt.Println("photoid:", photoID, "=>", "boxes:", boxes)
-
-		// faces, err := rec.RecognizeFile("./photo_storage/saved/" + photoMap[photoID].FilePath)
-		// if err != nil {
-		// 	panic(err)
-		// }
 
 		for _, boxIndex := range boxes {
-			fmt.Println("./photo_storage/boxes/" + photoMap[photoID].Boxes[boxIndex].FilePath)
 			face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + photoMap[photoID].Boxes[boxIndex].FilePath)
 			if err != nil {
 				panic(err)
@@ -249,11 +291,9 @@ func ClassifyFacesEngine(db *gorm.DB, photos []*entity.Photo) {
 				continue
 			}
 			label := rec.ClassifyThreshold(face.Descriptor, 0.2)
-			fmt.Println("CLASSIFED", photoID, boxIndex, label)
 			result[photoMap[photoID].Boxes[boxIndex].ID] = faceMap[label]
 		}
 	}
-	fmt.Println("RESULT", result)
 }
 
 // GetReadableLocation takes a photo, and uses the geo-coords

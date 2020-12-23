@@ -35,10 +35,13 @@ func (store *DBStore) GetFace(faceID int) (entity.Face, error) {
 
 // ClassifyFaces runs the automatic face recognition engine
 func (store *DBStore) ClassifyFaces() error {
-	photos, err := store.GetPhotos()
-	if err != nil {
-		panic(err)
+	var boxes []*entity.Box
+	store.DB.Preload(clause.Associations).Find(&boxes)
+
+	result := workflow.ClassifyFacesByBoxEngine(store.DB, boxes)
+
+	for boxID, faceName := range result {
+		store.AssignFaceToBox(boxID, faceName)
 	}
-	workflow.ClassifyFacesEngine(store.DB, photos)
 	return nil
 }

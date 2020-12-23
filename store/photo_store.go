@@ -40,10 +40,6 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 
 	// Start the photo workflow in parallel
 	go workflow.RunPhotoWorkflow(store.DB, &newPhoto)
-	// go workflow.GetFacesWorkflow(store.DB, &newPhoto)
-	// go workflow.CreateThumbnailWorkflow(&newPhoto)
-	// go workflow.GetReadableLocationWorkflow(store.DB, &newPhoto)
-	// go workflow.LabelPhotoWorkflow(store.DB, &newPhoto)
 
 	return nil
 }
