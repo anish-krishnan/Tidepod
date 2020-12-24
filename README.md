@@ -1,6 +1,6 @@
 ![alt text](favicon.png)
 # Tidepod
-A self hosted photo management platform built with Go
+A self hosted photo management platform that supports automatic face recognition and object detection. Built with Go
 
 
 ## Motivation
@@ -12,9 +12,12 @@ After building my Network Array Storage Server while staying at home during quar
 
 
 
-## Current Goals
+## :white_check_mark: Completed Goals
 - Be able to upload/download photos using the web interface
-- Group photos by peoples faces
+- Face detection and **recognition** (using [go-face](https://github.com/Kagami/go-face))
+- Label photos automatically based on semantics (using [tensorflow](https://www.tensorflow.org/))
+
+## :steam_locomotive: Current Goals
 - Smart Search with a quick index
 - Mobile application to upload photos to server
 
@@ -25,4 +28,3 @@ I expect to see lots of opportunities for concurrency in Tidepod. For example, r
 - Web Framework: [Gin](https://github.com/gin-gonic/gin) a framwork optimized for performance
 - ORM: [GORM](https://gorm.io/index.html)
 - Front end: [React](https://reactjs.org/) because who doesn't enjoy a fine looking site?
-
