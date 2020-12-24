@@ -38,7 +38,7 @@ class Box extends React.Component {
     if (this.state.box.Face.ID == 0) {
       return (
         <div class="card" style={{ width: '10rem' }}>
-          <img class="img-thumbnail" height='100px' width='100px' src={"/photo_storage/boxes/" + this.state.box.ID + ".jpg"} />
+          <img class="img-thumbnail" height='100px' width='100px' src={"/photo_storage/boxes/" + this.state.box.FilePath} />
           <form onSubmit={this.handleListSubmit}>
 
             <input onChange={this.handleListInput} type="text" class="form-control" placeholder="Enter name" />
@@ -51,7 +51,7 @@ class Box extends React.Component {
     } else {
       return (
         <div class="card" style={{ width: '6rem' }}>
-          <img class="img-thumbnail" height='100px' width='100px' src={"/photo_storage/boxes/" + this.state.box.ID + ".jpg"} />
+          <img class="img-thumbnail" height='100px' width='100px' src={"/photo_storage/boxes/" + this.state.box.FilePath} />
           <h5 class="card-title">{this.state.box.Face.Name}</h5>
         </div>
       )
