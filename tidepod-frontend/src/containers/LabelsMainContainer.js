@@ -12,7 +12,7 @@ class LabelsMainContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:3000/api/labels")
+    fetch("/api/labels")
       .then(resp => resp.json())
       .then(labels => {
         console.log(labels)

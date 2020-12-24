@@ -7,7 +7,7 @@ class HomeMainContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:3000/api/photos")
+    fetch("/api/photos")
       .then(resp => resp.json())
       .then(photos => {
         this.setState({
@@ -17,7 +17,7 @@ class HomeMainContainer extends React.Component {
   }
 
   handleDelete = (photo) => {
-    fetch("http://localhost:3000/api/photos/delete/" + photo.ID,
+    fetch("/api/photos/delete/" + photo.ID,
       { method: "POST" })
       .then(resp => resp.json())
       .then(photos => {
@@ -34,7 +34,7 @@ class HomeMainContainer extends React.Component {
   render() {
     return (
       <div className="main-container" >
-        <form enctype="multipart/form-data" action="http://localhost:3000/api/upload" method="post">
+        <form enctype="multipart/form-data" action="/api/upload" method="post">
           <input type="file" name="files" multiple /><br /><br />
           <input type="submit" value="upload" />
         </form>

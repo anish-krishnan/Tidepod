@@ -9,7 +9,7 @@ class LabelMainContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:3000/api/face/" + this.state.faceId)
+    fetch("/api/face/" + this.state.faceId)
       .then(resp => resp.json())
       .then(face => {
         this.setState({
@@ -21,7 +21,7 @@ class LabelMainContainer extends React.Component {
   }
 
   handleDelete = (photo) => {
-    fetch("http://localhost:3000/api/photos/delete/" + photo.ID,
+    fetch("/api/photos/delete/" + photo.ID,
       { method: "POST" })
       .then(resp => resp.json())
       .then(photos => {

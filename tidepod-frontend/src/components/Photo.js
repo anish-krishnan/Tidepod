@@ -23,7 +23,7 @@ class Photo extends React.Component {
   render() {
     return (
       <div className="photo">
-        <img style={this.mystyle} src={"http://localhost:3000/photo_storage/saved/" + this.props.photo.FilePath} height="auto" width="50%"></img>
+        <img style={this.mystyle} src={"/photo_storage/saved/" + this.props.photo.FilePath} height="auto" width="50%"></img>
         <div className="panel-footer">
           <p>#{this.props.photo.ID}</p>
           <p>Camera Model {this.props.photo.CameraModel}</p>

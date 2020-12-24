@@ -10,7 +10,7 @@ import {
 class Nav extends React.Component {
 
   handleRunFaceDetect = () => {
-    fetch("http://localhost:3000/api/classifyFaces")
+    fetch("/api/classifyFaces")
   }
 
   render() {

@@ -9,7 +9,7 @@ class LabelMainContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:3000/api/label/" + this.state.labelId)
+    fetch("/api/label/" + this.state.labelId)
       .then(resp => resp.json())
       .then(label => {
         this.setState({
@@ -20,7 +20,7 @@ class LabelMainContainer extends React.Component {
   }
 
   handleDelete = (photo) => {
-    fetch("http://localhost:3000/api/photos/delete/" + photo.ID,
+    fetch("/api/photos/delete/" + photo.ID,
       { method: "POST" })
       .then(resp => resp.json())
       .then(photos => {

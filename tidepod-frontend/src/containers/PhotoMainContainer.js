@@ -9,7 +9,7 @@ class PhotoMainContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:3000/api/photo/" + this.state.photoId)
+    fetch("/api/photo/" + this.state.photoId)
       .then(resp => resp.json())
       .then(photo => {
         console.log(photo)
@@ -21,7 +21,7 @@ class PhotoMainContainer extends React.Component {
   }
 
   handleDelete = (photo) => {
-    fetch("http://localhost:3000/api/photos/delete/" + photo.ID,
+    fetch("/api/photos/delete/" + photo.ID,
       { method: "POST" })
       .then(resp => resp.json())
       .then(photos => {

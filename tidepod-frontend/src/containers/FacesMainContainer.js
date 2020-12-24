@@ -12,7 +12,7 @@ class FacesMainContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:3000/api/faces")
+    fetch("/api/faces")
       .then(resp => resp.json())
       .then(faces => {
         console.log(faces)
