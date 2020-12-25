@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/color"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -75,6 +76,44 @@ func GetEXIFWorkflow(photo *entity.Photo, file *os.File) {
 		if err == nil {
 			photo.ApertureFStop = float64(numer) / float64(denom)
 		}
+	}
+}
+
+// UpdateRotations checks the photo for rotation inconsistencies
+// and rotates the image appropriately
+func UpdateRotations(filename string) {
+	file, err := os.Open("photo_storage/saved/" + filename)
+	if err != nil {
+		panic(err)
+	}
+
+	x, err := exif.Decode(file)
+	var rotation float64 = 0
+
+	if err == nil {
+		orientationRaw, err := x.Get("Orientation")
+
+		if err == nil {
+			orientation := orientationRaw.String()
+			if orientation == "3" {
+				rotation = 180
+			} else if orientation == "6" {
+				rotation = 270
+			} else if orientation == "8" {
+				rotation = 90
+			}
+		}
+
+	}
+
+	file.Close()
+	if rotation != 0 {
+		image, err := imaging.Open("photo_storage/saved/" + filename)
+		if err != nil {
+			panic(err)
+		}
+		rotatedImage := imaging.Rotate(image, rotation, color.Gray{})
+		imaging.Save(rotatedImage, "photo_storage/saved/"+filename)
 	}
 }
 
@@ -203,9 +242,10 @@ func ClassifyFacesByBoxEngine(db *gorm.DB, boxes []*entity.Box) map[int]string {
 	var labels []int32
 
 	for _, boxIndex := range trainSet {
-
 		face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + boxes[boxIndex].FilePath)
-		if face == nil || err != nil {
+		if face == nil {
+			continue
+		} else if err != nil {
 			panic(err)
 		}
 
@@ -219,11 +259,10 @@ func ClassifyFacesByBoxEngine(db *gorm.DB, boxes []*entity.Box) map[int]string {
 
 	for _, boxIndex := range testSet {
 		face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + boxes[boxIndex].FilePath)
-		if err != nil {
-			panic(err)
-		}
 		if face == nil {
 			continue
+		} else if err != nil {
+			panic(err)
 		}
 		label := rec.ClassifyThreshold(face.Descriptor, 0.2)
 		if label > 0 {

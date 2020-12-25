@@ -12,7 +12,7 @@ class PhotoMainContainer extends React.Component {
     fetch("/api/photo/" + this.state.photoId)
       .then(resp => resp.json())
       .then(photo => {
-        console.log(photo)
+        console.log("GOT PHOTO", photo)
         this.setState({
           photo: photo,
           fetching: false

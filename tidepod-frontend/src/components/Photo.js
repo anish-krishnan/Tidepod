@@ -19,6 +19,9 @@ class Photo extends React.Component {
     this.props.handleDelete(this.props.photo)
   }
 
+  componentDidMount() {
+    console.log("info", this.props.photo)
+  }
 
   render() {
     return (
@@ -34,20 +37,18 @@ class Photo extends React.Component {
 
           <div>
             {this.props.photo.Labels.map(function (label, i) {
-              return (<Link to={`/label/${label.ID}`}><Button variant="secondary">{label.LabelName}</Button></Link>);
+              return (<Link to={`/label/${label.ID}`} key={i}><Button variant="secondary">{label.LabelName}</Button></Link>);
             })}
           </div>
 
           <div>
             {this.props.photo.Boxes.map(function (box, i) {
+              console.log(box)
               return (<Box box={box} key={i} />);
             })}
           </div>
 
           <div>
-            <button type="button" class="btn btn-warning" onClick={this.handleMinimize} >
-              <span className="glyphicon glyphicon-resize-small" ></span>Minimize
-          </button>
             <button type="button" class="btn btn-warning" onClick={this.handleDelete} >
               <span className="glyphicon glyphicon-trash"></span>Delete
           </button>

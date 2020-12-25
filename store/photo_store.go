@@ -29,6 +29,8 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	var c *gin.Context
 	c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+newFilename)
 
+	workflow.UpdateRotations(newFilename)
+
 	file, err := os.Open("photo_storage/saved/" + newFilename)
 	if err != nil {
 		panic(err)
@@ -60,6 +62,11 @@ func (store *DBStore) GetPhotos() ([]*entity.Photo, error) {
 func (store *DBStore) GetPhoto(photoID int) (entity.Photo, error) {
 	var photo entity.Photo
 	store.DB.Preload(clause.Associations).First(&photo, photoID)
+	for j, box := range photo.Boxes {
+		var newBox entity.Box
+		store.DB.Preload(clause.Associations).First(&newBox, box.ID)
+		photo.Boxes[j] = newBox
+	}
 	return photo, nil
 }
 

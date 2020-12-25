@@ -1,6 +1,7 @@
 import React from 'react'
 import Photo from '../components/Photo'
 import Gallery from 'react-photo-gallery';
+import { useHistory, withRouter } from "react-router-dom";
 
 class PhotoGallery extends React.Component {
 
@@ -11,13 +12,13 @@ class PhotoGallery extends React.Component {
   };
 
 
-  onClick = (event) => {
-    this.setState({
-      isPhotoFullscreen: !this.state.isPhotoFullscreen,
-      curPhoto: { ...this.props.photos.find(photo => photo.ID === parseInt(event.target.id)) }
-    });
-    // debugger;
-  }
+  // onClick = (event) => {
+  //   this.setState({
+  //     isPhotoFullscreen: !this.state.isPhotoFullscreen,
+  //     curPhoto: { ...this.props.photos.find(photo => photo.ID === parseInt(event.target.id)) }
+  //   });
+  //   // debugger;
+  // }
 
   handleMinimize = () => {
     this.setState({
@@ -31,6 +32,12 @@ class PhotoGallery extends React.Component {
       isPhotoFullscreen: false
     })
     window.location.reload();
+  }
+
+  onClick = (event) => {
+    debugger;
+    const { history } = this.props;
+    if (history) history.push('/photo/' + event.target.id);
   }
 
 

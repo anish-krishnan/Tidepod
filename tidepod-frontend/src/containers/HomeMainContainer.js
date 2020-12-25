@@ -1,5 +1,6 @@
 import React from 'react'
 import PhotoGallery from './PhotoGallery'
+import Gallery from 'react-photo-gallery';
 
 class HomeMainContainer extends React.Component {
   state = {
@@ -31,6 +32,11 @@ class HomeMainContainer extends React.Component {
 
   }
 
+  onClick = (event) => {
+    const { history } = this.props;
+    if (history) history.push('/photo/' + event.target.id);
+  }
+
   render() {
     return (
       <div className="main-container" >
@@ -38,7 +44,11 @@ class HomeMainContainer extends React.Component {
           <input type="file" name="files" multiple /><br /><br />
           <input type="submit" value="upload" />
         </form>
-        <PhotoGallery photos={this.state.photos} handleDelete={this.handleDelete} />
+        <Gallery onClick={this.onClick} photos={
+          this.state.photos.map(photo => {
+            return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }
+          })
+        } />
       </div>
     )
   }

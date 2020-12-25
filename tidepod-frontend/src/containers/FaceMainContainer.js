@@ -1,7 +1,9 @@
 import React from 'react'
 import PhotoGallery from '../containers/PhotoGallery'
+import Gallery from 'react-photo-gallery';
+import { useHistory, withRouter } from "react-router-dom";
 
-class LabelMainContainer extends React.Component {
+class FaceMainContainer extends React.Component {
   state = {
     face: "",
     photos: [],
@@ -31,15 +33,25 @@ class LabelMainContainer extends React.Component {
       })
   }
 
+  onClick = (event) => {
+    const { history } = this.props;
+    if (history) history.push('/photo/' + event.target.id);
+  }
+
   render() {
     return (
       <div className="labels-main-container" >
         <h3>Face Main Container : {this.state.face.Name}</h3>
-        <PhotoGallery photos={this.state.photos} handleDelete={this.handleDelete} />
+        <Gallery onClick={this.onClick} photos={
+          this.state.photos.map(photo => {
+            return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }
+          })
+        }
+        />
       </div>
     )
   }
 }
 
 
-export default LabelMainContainer;
+export default FaceMainContainer;
