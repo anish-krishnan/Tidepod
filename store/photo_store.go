@@ -48,14 +48,14 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 
 func (store *DBStore) GetPhotos() ([]*entity.Photo, error) {
 	var photos []*entity.Photo
-	store.DB.Preload(clause.Associations).Find(&photos)
-	for _, photo := range photos {
-		for j, box := range photo.Boxes {
-			var newBox entity.Box
-			store.DB.Preload(clause.Associations).First(&newBox, box.ID)
-			photo.Boxes[j] = newBox
-		}
-	}
+	store.DB.Find(&photos)
+	// for _, photo := range photos {
+	// 	for j, box := range photo.Boxes {
+	// 		var newBox entity.Box
+	// 		store.DB.Preload(clause.Associations).First(&newBox, box.ID)
+	// 		photo.Boxes[j] = newBox
+	// 	}
+	// }
 	return photos, nil
 }
 
