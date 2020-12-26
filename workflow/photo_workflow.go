@@ -176,7 +176,7 @@ func GetFaces(db *gorm.DB, photo *entity.Photo) {
 		panic(err)
 	}
 
-	rec, err := face.NewRecognizer(".")
+	rec, err := face.NewRecognizer("./workflow")
 	if err != nil {
 		panic(err)
 	}
@@ -232,7 +232,7 @@ func ClassifyFacesByBoxEngine(db *gorm.DB, boxes []*entity.Box) map[int]string {
 		}
 	}
 
-	rec, err := face.NewRecognizer(".")
+	rec, err := face.NewRecognizer("./workflow")
 	if err != nil {
 		panic(err)
 	}
