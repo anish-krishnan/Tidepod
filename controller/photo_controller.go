@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Get photos
+// GetPhotosHandler gets all photos
 func GetPhotosHandler(c *gin.Context) {
 
 	photos, err := MyStore.GetPhotos()
@@ -24,7 +25,7 @@ func GetPhotosHandler(c *gin.Context) {
 	}
 }
 
-// Get a specific photo
+// GetPhotoHandler gets a specific photo by ID
 func GetPhotoHandler(c *gin.Context) {
 	if photoid, err := strconv.Atoi(c.Param("photoID")); err == nil {
 		photo, err := MyStore.GetPhoto(photoid)
@@ -40,7 +41,8 @@ func GetPhotoHandler(c *gin.Context) {
 	}
 }
 
-// Uploads multiple files to "photo_storage/" folder
+// UploadHandler handles the upload of multiple files to "photo_storage/"
+// folder
 func UploadHandler(c *gin.Context) {
 
 	form, err := c.MultipartForm()
@@ -51,6 +53,8 @@ func UploadHandler(c *gin.Context) {
 	}
 
 	files := form.File["files"]
+
+	fmt.Println("Files", form.File)
 
 	for _, file := range files {
 		filename := filepath.Base(file.Filename)
@@ -70,7 +74,45 @@ func UploadHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(fmt.Sprintf("uploaded %d files! <a href='http://localhost:3000'>back</a>", len(files))))
 }
 
-// Delete a photo
+// UploadMobileHandler handles the upload of multiple files to "photo_storage/"
+// folder from a mobile device. The EXIF data arrives seperately in the request
+func UploadMobileHandler(c *gin.Context) {
+
+	err := c.Request.ParseMultipartForm(1000)
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		fmt.Println("error getting multipartform", err)
+		panic(err)
+	}
+
+	files := form.File["files"]
+	infoArray := form.Value["infoArray"]
+
+	for i, file := range files {
+		filename := filepath.Base(file.Filename)
+		info := infoArray[i]
+
+		fmt.Println("\n\n\n", info, "\n\n\n")
+
+		var raw map[string]interface{}
+		if err := json.Unmarshal([]byte(info), &raw); err != nil {
+			panic(err)
+		}
+		fmt.Println(raw)
+
+		err := MyStore.CreatePhotoFromMobile(filename, file, raw)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// c.String(http.StatusOK, fmt.Sprintf("uploaded %d files!", len(files)))
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(fmt.Sprintf("uploaded %d files! <a href='http://localhost:3000'>back</a>", len(files))))
+}
+
+// DeletePhotoHandler deletes a specific photo by ID
 func DeletePhotoHandler(c *gin.Context) {
 	if photoid, err := strconv.Atoi(c.Param("photoID")); err == nil {
 		err := MyStore.DeletePhoto(photoid)

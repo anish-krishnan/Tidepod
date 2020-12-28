@@ -11,7 +11,15 @@ import (
 	"gorm.io/gorm"
 )
 
+// MyStore is a global storage reference for all controllers
 var MyStore store.Store
+
+func init() {
+	db := initGORM()
+	migrateDatabases(db)
+
+	MyStore = &store.DBStore{DB: db}
+}
 
 // Read labels from text file and output a string array
 func readLabels(labelsFile string) ([]string, error) {
@@ -21,15 +29,17 @@ func readLabels(labelsFile string) ([]string, error) {
 	}
 
 	return strings.Split(string(fileBytes), "\n"), nil
-
 }
 
-func init() {
+func initGORM() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
+	return db
+}
 
+func migrateDatabases(db *gorm.DB) {
 	db.AutoMigrate(&entity.Joke{})
 	db.AutoMigrate(&entity.Photo{})
 
@@ -39,7 +49,7 @@ func init() {
 	db.AutoMigrate(&entity.Face{})
 	db.AutoMigrate(&entity.Box{})
 
-	labels, err := readLabels("object_detection/ssd_mobilenet_v1_coco_2018_01_28/saved_model/labels.txt")
+	labels, err := readLabels("workflow/object_detection/ssd_mobilenet_v1_coco_2018_01_28/saved_model/labels.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -47,6 +57,4 @@ func init() {
 	for _, s := range labels {
 		db.Create(&entity.Label{LabelName: s})
 	}
-
-	MyStore = &store.DBStore{DB: db}
 }

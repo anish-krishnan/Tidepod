@@ -45,6 +45,7 @@ func main() {
 	api.GET("/photo/:photoID", controller.GetPhotoHandler)
 	api.POST("/photos/delete/:photoID", controller.DeletePhotoHandler)
 	api.POST("/upload", controller.UploadHandler)
+	api.POST("/uploadmobile", controller.UploadMobileHandler)
 
 	// Labels Routes
 	api.GET("/labels", controller.GetLabelsHandler)

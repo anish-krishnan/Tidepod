@@ -2,7 +2,7 @@ package store
 
 import (
 	"github.com/anish-krishnan/Tidepod/entity"
-	"github.com/anish-krishnan/Tidepod/workflow"
+	"github.com/anish-krishnan/Tidepod/workflow/face_recognition"
 	"gorm.io/gorm/clause"
 )
 
@@ -38,7 +38,7 @@ func (store *DBStore) ClassifyFaces() error {
 	var boxes []*entity.Box
 	store.DB.Preload(clause.Associations).Find(&boxes)
 
-	result := workflow.ClassifyFacesByBoxEngine(store.DB, boxes)
+	result := face_recognition.ClassifyFacesByBoxEngine(store.DB, boxes)
 
 	for boxID, faceName := range result {
 		store.AssignFaceToBox(boxID, faceName)

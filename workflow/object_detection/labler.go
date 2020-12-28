@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/anish-krishnan/Tidepod/object_detection/models"
+	"github.com/anish-krishnan/Tidepod/workflow/object_detection/models"
 )
 
 func GetLabelsForFile(filename string) ([]string, error) {

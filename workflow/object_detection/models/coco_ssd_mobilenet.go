@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/anish-krishnan/Tidepod/object_detection/responses"
+	"github.com/anish-krishnan/Tidepod/workflow/object_detection/responses"
 
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 )

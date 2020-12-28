@@ -4,20 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"image/color"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/Kagami/go-face"
 	"github.com/anish-krishnan/Tidepod/entity"
-	"github.com/anish-krishnan/Tidepod/object_detection"
+	"github.com/anish-krishnan/Tidepod/workflow/object_detection"
 	"github.com/codingsince1985/geo-golang"
 	"github.com/codingsince1985/geo-golang/mapquest/open"
 	"github.com/disintegration/imaging"
-	"github.com/rwcarlsen/goexif/exif"
 	"gorm.io/gorm"
 )
 
@@ -33,96 +30,12 @@ func init() {
 	geocoder = open.Geocoder(string(mapquestAPIKEY))
 }
 
-// GetEXIFWorkflow extracts EXIF information from image. Updates database
-// entry appropriately with this information
-func GetEXIFWorkflow(photo *entity.Photo, file *os.File) {
-	exifInfo, err := exif.Decode(file)
-	if err != nil {
-		return
-	}
-
-	// Camera Model
-	cameraModel, err := exifInfo.Get(exif.Model)
-	if err == nil {
-		photo.CameraModel = cameraModel.String()
-	}
-
-	// Location
-	lat, long, err := exifInfo.LatLong()
-	if err == nil {
-		photo.Latitude = lat
-		photo.Longitude = long
-	}
-
-	// Timestamp
-	tm, err := exifInfo.DateTime()
-	if err == nil {
-		photo.Timestamp = tm
-	}
-
-	// Focal Length
-	focal, err := exifInfo.Get(exif.FocalLength)
-	if err == nil {
-		numer, denom, err := focal.Rat2(0)
-		if err == nil {
-			photo.FocalLength = float64(numer) / float64(denom)
-		}
-	}
-
-	// Aperture
-	aperture, err := exifInfo.Get(exif.FNumber)
-	if err == nil {
-		numer, denom, err := aperture.Rat2(0)
-		if err == nil {
-			photo.ApertureFStop = float64(numer) / float64(denom)
-		}
-	}
-}
-
-// UpdateRotations checks the photo for rotation inconsistencies
-// and rotates the image appropriately
-func UpdateRotations(filename string) {
-	file, err := os.Open("photo_storage/saved/" + filename)
-	if err != nil {
-		panic(err)
-	}
-
-	x, err := exif.Decode(file)
-	var rotation float64 = 0
-
-	if err == nil {
-		orientationRaw, err := x.Get("Orientation")
-
-		if err == nil {
-			orientation := orientationRaw.String()
-			if orientation == "3" {
-				rotation = 180
-			} else if orientation == "6" {
-				rotation = 270
-			} else if orientation == "8" {
-				rotation = 90
-			}
-		}
-
-	}
-
-	file.Close()
-	if rotation != 0 {
-		image, err := imaging.Open("photo_storage/saved/" + filename)
-		if err != nil {
-			panic(err)
-		}
-		rotatedImage := imaging.Rotate(image, rotation, color.Gray{})
-		imaging.Save(rotatedImage, "photo_storage/saved/"+filename)
-	}
-}
-
 // RunPhotoWorkflow runs the workflows sequentially
 func RunPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
 	CreateThumbnail(photo)
-	GetReadableLocation(db, photo)
+	UpdatePhotoWithReadableLocation(db, photo)
 	LabelPhoto(db, photo)
-	GetFaces(db, photo)
+	RunFaceDetect(db, photo)
 }
 
 // LabelPhoto takes a photo and runs it through the tensorflow object
@@ -150,9 +63,6 @@ func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
 // CreateThumbnail takes a photo, creates a 200x200 thumbnail
 // and saves it to the photo_storage/thumbnails/ directory
 func CreateThumbnail(photo *entity.Photo) {
-	// use all CPU cores for maximum performance
-	// runtime.GOMAXPROCS(runtime.NumCPU())
-
 	img, err := imaging.Open("photo_storage/saved/" + photo.FilePath)
 	if err != nil {
 		panic(err)
@@ -165,9 +75,9 @@ func CreateThumbnail(photo *entity.Photo) {
 	}
 }
 
-// GetFaces takes a photo, and finds all faces in the image. It creates a
+// RunFaceDetect takes a photo, and finds all faces in the image. It creates a
 // new "Box" for each found face
-func GetFaces(db *gorm.DB, photo *entity.Photo) {
+func RunFaceDetect(db *gorm.DB, photo *entity.Photo) {
 	fileParts := strings.Split(photo.FilePath, ".")
 	ext := fileParts[len(fileParts)-1]
 
@@ -216,128 +126,9 @@ func GetFaces(db *gorm.DB, photo *entity.Photo) {
 	db.Save(newPhoto)
 }
 
-// ClassifyFacesByBoxEngine trains on already labelled faces, and classifies all other photos
-func ClassifyFacesByBoxEngine(db *gorm.DB, boxes []*entity.Box) map[int]string {
-	// Mapping photoIDs to respective boxes that are in train or test
-	var trainSet []int
-	var testSet []int
-	var faceMap map[int]string = make(map[int]string)
-
-	for j, box := range boxes {
-		if box.Face.ID != 0 {
-			trainSet = append(trainSet, j)
-			faceMap[box.Face.ID] = box.Face.Name
-		} else {
-			testSet = append(testSet, j)
-		}
-	}
-
-	rec, err := face.NewRecognizer("./workflow")
-	if err != nil {
-		panic(err)
-	}
-	defer rec.Close()
-
-	var samples []face.Descriptor
-	var labels []int32
-
-	for _, boxIndex := range trainSet {
-		face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + boxes[boxIndex].FilePath)
-		if face == nil {
-			continue
-		} else if err != nil {
-			panic(err)
-		}
-
-		samples = append(samples, face.Descriptor)
-		labels = append(labels, int32(boxes[boxIndex].Face.ID))
-	}
-
-	rec.SetSamples(samples, labels)
-
-	var result map[int]string = make(map[int]string)
-
-	for _, boxIndex := range testSet {
-		face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + boxes[boxIndex].FilePath)
-		if face == nil {
-			continue
-		} else if err != nil {
-			panic(err)
-		}
-		label := rec.ClassifyThreshold(face.Descriptor, 0.2)
-		if label > 0 {
-			result[boxes[boxIndex].ID] = faceMap[label]
-		}
-	}
-	return result
-}
-
-// ClassifyFacesByPhotoEngine trains on already labelled faces, and classifies all other photos
-func ClassifyFacesByPhotoEngine(db *gorm.DB, photos []*entity.Photo) {
-	// Mapping photoIDs to respective boxes that are in train or test
-	var trainSet map[int][]int = make(map[int][]int)
-	var testSet map[int][]int = make(map[int][]int)
-
-	var photoMap map[int]*entity.Photo = make(map[int]*entity.Photo)
-	var faceMap map[int]string = make(map[int]string)
-
-	for _, photo := range photos {
-		for j, box := range photo.Boxes {
-			photoMap[photo.ID] = photo
-			if box.Face.ID != 0 {
-				trainSet[photo.ID] = append(trainSet[photo.ID], j)
-			} else {
-				testSet[photo.ID] = append(testSet[photo.ID], j)
-			}
-		}
-	}
-
-	rec, err := face.NewRecognizer(".")
-	if err != nil {
-		panic(err)
-	}
-	defer rec.Close()
-
-	var samples []face.Descriptor
-	var labels []int32
-
-	for photoID, boxes := range trainSet {
-
-		faces, err := rec.RecognizeFile("./photo_storage/saved/" + photoMap[photoID].FilePath)
-		if err != nil {
-			panic(err)
-		}
-
-		for _, boxIndex := range boxes {
-			samples = append(samples, faces[boxIndex].Descriptor)
-			labels = append(labels, int32(photoMap[photoID].Boxes[boxIndex].Face.ID))
-			faceMap[photoMap[photoID].Boxes[boxIndex].Face.ID] = photoMap[photoID].Boxes[boxIndex].Face.Name
-		}
-	}
-
-	rec.SetSamples(samples, labels)
-
-	var result map[int]string = make(map[int]string)
-
-	for photoID, boxes := range testSet {
-
-		for _, boxIndex := range boxes {
-			face, err := rec.RecognizeSingleFile("./photo_storage/boxes/" + photoMap[photoID].Boxes[boxIndex].FilePath)
-			if err != nil {
-				panic(err)
-			}
-			if face == nil {
-				continue
-			}
-			label := rec.ClassifyThreshold(face.Descriptor, 0.2)
-			result[photoMap[photoID].Boxes[boxIndex].ID] = faceMap[label]
-		}
-	}
-}
-
-// GetReadableLocation takes a photo, and uses the geo-coords
+// UpdatePhotoWithReadableLocation takes a photo, and uses the geo-coords
 // to find a human readable address and updates the db entry appropriately
-func GetReadableLocation(db *gorm.DB, photo *entity.Photo) {
+func UpdatePhotoWithReadableLocation(db *gorm.DB, photo *entity.Photo) {
 	if photo.Latitude == 0.0 && photo.Longitude == 0.0 {
 		return
 	}

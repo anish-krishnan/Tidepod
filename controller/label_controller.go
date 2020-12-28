@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Get labels
+// GetLabelsHandler gets all labels
 func GetLabelsHandler(c *gin.Context) {
 	labels, err := MyStore.GetLabels()
 
@@ -20,7 +20,7 @@ func GetLabelsHandler(c *gin.Context) {
 	}
 }
 
-// Get labels
+// GetLabelHandler gets a specific label by id
 func GetLabelHandler(c *gin.Context) {
 
 	if labelid, err := strconv.Atoi(c.Param("labelID")); err == nil {
