@@ -18,29 +18,21 @@ import (
 //  2. labels the image using the tensorflow object detection package
 //  3. adds the entry to the database
 func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileHeader) error {
+	fmt.Println("working on", filename)
 	var newPhoto entity.Photo
 	store.DB.Create(&newPhoto)
 
-	var c *gin.Context
 	newPhoto.OriginalFilename = filename
+	newFilename := fmt.Sprintf("%d.%s", newPhoto.ID, "jpg")
+	newPhoto.FilePath = newFilename
+
 	fileParts := strings.Split(filename, ".")
 	ext := fileParts[len(fileParts)-1]
-	var newFilename string
+	tempFilename := fmt.Sprintf("TEMP.%s", ext)
 
-	fmt.Println("working on", filename)
-
-	if strings.ToLower(ext) == "png" {
-		tempFilename := fmt.Sprintf("%d.%s", newPhoto.ID, ext)
-		newFilename = fmt.Sprintf("%d.%s", newPhoto.ID, "jpg")
-		newPhoto.FilePath = newFilename
-		c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+tempFilename)
-		util.ConvertPNGToJPG(tempFilename, newFilename)
-	} else {
-		newFilename = fmt.Sprintf("%d.%s", newPhoto.ID, ext)
-		newPhoto.FilePath = newFilename
-		c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+newFilename)
-	}
-
+	var c *gin.Context
+	c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+tempFilename)
+	util.ConvertImageToJPG(tempFilename, newFilename)
 	util.UpdatePhotoRotation(newFilename)
 
 	file, err := os.Open("photo_storage/saved/" + newFilename)
@@ -61,29 +53,21 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 // CreatePhotoFromMobile functions identically to CreatePhoto but uses EXIF
 // data in the 'info' json object
 func (store *DBStore) CreatePhotoFromMobile(filename string, uploadedFile *multipart.FileHeader, info map[string]interface{}) error {
+	fmt.Println("working on", filename)
 	var newPhoto entity.Photo
 	store.DB.Create(&newPhoto)
 
-	var c *gin.Context
 	newPhoto.OriginalFilename = filename
+	newFilename := fmt.Sprintf("%d.%s", newPhoto.ID, "jpg")
+	newPhoto.FilePath = newFilename
+
 	fileParts := strings.Split(filename, ".")
 	ext := fileParts[len(fileParts)-1]
-	var newFilename string
+	tempFilename := fmt.Sprintf("TEMP.%s", ext)
 
-	fmt.Println("working on", filename)
-
-	if strings.ToLower(ext) == "png" {
-		tempFilename := fmt.Sprintf("%d.%s", newPhoto.ID, ext)
-		newFilename = fmt.Sprintf("%d.%s", newPhoto.ID, "jpg")
-		newPhoto.FilePath = newFilename
-		c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+tempFilename)
-		util.ConvertPNGToJPG(tempFilename, newFilename)
-	} else {
-		newFilename = fmt.Sprintf("%d.%s", newPhoto.ID, ext)
-		newPhoto.FilePath = newFilename
-		c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+newFilename)
-	}
-
+	var c *gin.Context
+	c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+tempFilename)
+	util.ConvertImageToJPG(tempFilename, newFilename)
 	util.UpdatePhotoRotation(newFilename)
 
 	file, err := os.Open("photo_storage/saved/" + newFilename)
@@ -162,4 +146,17 @@ func (store *DBStore) DeletePhoto(photoID int) error {
 	store.DB.Model(&photo).Association("Labels").Clear()
 	store.DB.Delete(&entity.Photo{}, photoID)
 	return nil
+}
+
+// IsDuplicatePhoto uses the metadata to determine if this photo is already stored
+func (store *DBStore) IsDuplicatePhoto(info map[string]interface{}) bool {
+	var newPhoto entity.Photo
+	newPhoto.OriginalFilename = info["name"].(string)
+	util.UpdateMobilePhotoWithEXIF(&newPhoto, info["info"].(map[string]interface{}))
+	fmt.Println("working on ", newPhoto)
+
+	var photos []*entity.Photo
+	store.DB.Where("timestamp = ? AND original_filename = ?", newPhoto.Timestamp, newPhoto.OriginalFilename).Find(&photos)
+
+	return len(photos) > 0
 }

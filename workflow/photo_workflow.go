@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/Kagami/go-face"
 	"github.com/anish-krishnan/Tidepod/entity"
@@ -20,6 +21,7 @@ import (
 
 var geocoder geo.Geocoder
 var mapquestAPIKEY string
+var mutex sync.Mutex
 
 func init() {
 	mapquestApiKeyRaw, err := ioutil.ReadFile("credentials/MapQuestAPIKEY.txt")
@@ -54,10 +56,12 @@ func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
 	}
 	// photo.Labels = labelEntries
 
+	mutex.Lock()
 	var newPhoto entity.Photo
 	db.First(&newPhoto, photo.ID)
 	newPhoto.Labels = labelEntries
 	db.Save(newPhoto)
+	mutex.Unlock()
 }
 
 // CreateThumbnail takes a photo, creates a 200x200 thumbnail
@@ -71,6 +75,7 @@ func CreateThumbnail(photo *entity.Photo) {
 
 	err = imaging.Save(thumb, "photo_storage/thumbnails/"+photo.FilePath)
 	if err != nil {
+		fmt.Println("ERROR saving thumbnail", photo.FilePath)
 		panic(err)
 	}
 }
@@ -120,10 +125,13 @@ func RunFaceDetect(db *gorm.DB, photo *entity.Photo) {
 			panic(err)
 		}
 	}
+
+	mutex.Lock()
 	var newPhoto entity.Photo
 	db.First(&newPhoto, photo.ID)
 	newPhoto.Boxes = photo.Boxes
 	db.Save(newPhoto)
+	mutex.Unlock()
 }
 
 // UpdatePhotoWithReadableLocation takes a photo, and uses the geo-coords

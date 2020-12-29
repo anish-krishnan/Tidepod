@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"image/jpeg"
 	"image/png"
@@ -11,6 +12,7 @@ import (
 	"github.com/anish-krishnan/Tidepod/entity"
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
+	"golang.org/x/image/tiff"
 )
 
 // UpdatePhotoWithEXIF extracts EXIF information from image. Updates database
@@ -66,9 +68,11 @@ func UpdateMobilePhotoWithEXIF(photo *entity.Photo, info map[string]interface{})
 	exifInfo := info["exif"].(map[string]interface{})
 
 	// Camera Model
-	cameraModel := exifInfo["{TIFF}"].(map[string]interface{})["Model"]
-	if cameraModel != nil {
-		photo.CameraModel = cameraModel.(string)
+	if exifInfo["{TIFF}"] != nil {
+		cameraModel := exifInfo["{TIFF}"].(map[string]interface{})["Model"]
+		if cameraModel != nil {
+			photo.CameraModel = cameraModel.(string)
+		}
 	}
 
 	// Location
@@ -82,27 +86,21 @@ func UpdateMobilePhotoWithEXIF(photo *entity.Photo, info map[string]interface{})
 	}
 
 	// Timestamp
-	layout := "2006:01:02 15:04:05 -07:00"
-	rawDatetime := exifInfo["{TIFF}"].(map[string]interface{})["DateTime"]
-	offset := exifInfo["{Exif}"].(map[string]interface{})["OffsetTimeOriginal"]
-	if rawDatetime != nil && offset != nil {
-		rawDatetimeWithOffset := fmt.Sprintf("%s %s", rawDatetime.(string), offset.(string))
-		datetime, err := time.Parse(layout, rawDatetimeWithOffset)
-		if err == nil {
-			photo.Timestamp = datetime
+	datetime := time.Unix(int64(info["creationTime"].(float64)/1000), 0)
+	photo.Timestamp = datetime
+
+	if exifInfo["{Exif}"] != nil {
+		// Focal Length
+		focalLength := exifInfo["{Exif}"].(map[string]interface{})["FocalLength"]
+		if focalLength != nil {
+			photo.FocalLength = focalLength.(float64)
 		}
-	}
 
-	// Focal Length
-	focalLength := exifInfo["{Exif}"].(map[string]interface{})["FocalLength"]
-	if focalLength != nil {
-		photo.FocalLength = focalLength.(float64)
-	}
-
-	// Aperture
-	apertureValue := exifInfo["{Exif}"].(map[string]interface{})["ApertureValue"]
-	if apertureValue != nil {
-		photo.ApertureFStop = apertureValue.(float64)
+		// Aperture
+		apertureValue := exifInfo["{Exif}"].(map[string]interface{})["ApertureValue"]
+		if apertureValue != nil {
+			photo.ApertureFStop = apertureValue.(float64)
+		}
 	}
 }
 
@@ -144,7 +142,7 @@ func UpdatePhotoRotation(filename string) {
 	}
 }
 
-// ConvertPNGToJPG converts a png image to a jpg image
+// ConvertPNGToJPG converts a tif image to a jpg image
 func ConvertPNGToJPG(pngFilename string, jpgFilename string) {
 	pngImgFile, err := os.Open("photo_storage/saved/" + pngFilename)
 
@@ -180,6 +178,60 @@ func ConvertPNGToJPG(pngFilename string, jpgFilename string) {
 
 	relativePNGFilePath := "photo_storage/saved/" + pngFilename
 	err = os.Remove(relativePNGFilePath)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// ConvertImageToJPG converts a tif image to a jpg image
+func ConvertImageToJPG(originalFilename string, jpgFilename string) {
+	mimeType := getMimeType(originalFilename)
+
+	originalImage, err := os.Open("photo_storage/saved/" + originalFilename)
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer originalImage.Close()
+
+	// create image from file
+	var imgSrc image.Image
+
+	if mimeType == "image/jpeg" {
+		imgSrc, err = jpeg.Decode(originalImage)
+	} else if mimeType == "image/png" {
+		imgSrc, err = png.Decode(originalImage)
+	} else if mimeType == "image/tiff" {
+		imgSrc, err = tiff.Decode(originalImage)
+	} else {
+		panic(fmt.Sprintf("Can't convert get image from mime type %s", mimeType))
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	// create new out JPEG file
+	jpgImgFile, err := os.Create("photo_storage/saved/" + jpgFilename)
+	if err != nil {
+		panic(err)
+	}
+
+	defer jpgImgFile.Close()
+
+	var opt jpeg.Options
+	opt.Quality = 100
+
+	// convert newImage to JPEG encoded byte and save to jpgImgFile
+	// with quality = 100
+	err = jpeg.Encode(jpgImgFile, imgSrc, &opt)
+	if err != nil {
+		panic(err)
+	}
+
+	relativeOriginalFilePath := "photo_storage/saved/" + originalFilename
+	err = os.Remove(relativeOriginalFilePath)
 	if err != nil {
 		panic(err)
 	}

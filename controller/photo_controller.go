@@ -74,6 +74,39 @@ func UploadHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(fmt.Sprintf("uploaded %d files! <a href='http://localhost:3000'>back</a>", len(files))))
 }
 
+// PreUploadMobileHandler handles takes data about photos that the mobile
+// device is trying to upload and returns the JSON containing the new files
+// that should be uploaded
+func PreUploadMobileHandler(c *gin.Context) {
+
+	err := c.Request.ParseMultipartForm(1000)
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		fmt.Println("error getting multipartform", err)
+		panic(err)
+	}
+
+	infoArray := form.Value["infoArray"]
+
+	var result []int
+	for i, info := range infoArray {
+
+		var raw map[string]interface{}
+		if err := json.Unmarshal([]byte(info), &raw); err != nil {
+			panic(err)
+		}
+
+		if !MyStore.IsDuplicatePhoto(raw) {
+			result = append(result, i)
+		}
+	}
+
+	fmt.Println("RESPONDING WITH", result)
+	c.JSON(http.StatusOK, result)
+}
+
 // UploadMobileHandler handles the upload of multiple files to "photo_storage/"
 // folder from a mobile device. The EXIF data arrives seperately in the request
 func UploadMobileHandler(c *gin.Context) {
