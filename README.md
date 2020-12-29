@@ -1,4 +1,4 @@
-![](https://goreportcard.com/badge/github.com/anish-krishnan/Tidepod)
+[![Code Quality](https://goreportcard.com/badge/github.com/anish-krishnan/Tidepod)][goreport]
 
 ![alt text](favicon.png)
 # Tidepod
@@ -32,3 +32,5 @@ I expect to see lots of opportunities for concurrency in Tidepod. For example, r
 - Web Framework: [Gin](https://github.com/gin-gonic/gin) a framwork optimized for performance
 - ORM: [GORM](https://gorm.io/index.html)
 - Front end: [React](https://reactjs.org/) because who doesn't enjoy a fine looking site?
+
+[goreport]: https://goreportcard.com/report/github.com/anish-krishnan/tidepod
