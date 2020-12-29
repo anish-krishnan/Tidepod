@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/anish-krishnan/Tidepod/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

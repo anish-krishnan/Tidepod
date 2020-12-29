@@ -2,7 +2,7 @@ package facerecognition
 
 import (
 	"github.com/Kagami/go-face"
-	"github.com/anish-krishnan/Tidepod/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"gorm.io/gorm"
 )
 

@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/anish-krishnan/Tidepod/controller"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/controller"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )

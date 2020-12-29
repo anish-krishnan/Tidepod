@@ -1,6 +1,6 @@
-photo_storage/*
+tidepod-server/photo_storage/*
 *.db
-workflow/object_detection/faster_rcnn_openimages_v4_inception_resnet_v2_1/*
+tidepod-server/workflow/object_detection/faster_rcnn_openimages_v4_inception_resnet_v2_1/*
 
 # Credentials
-credentials/*
+tidepod-server/credentials/*

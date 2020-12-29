@@ -1,6 +1,6 @@
 package store
 
-import "github.com/anish-krishnan/Tidepod/entity"
+import "github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 
 // CreateJoke creates a joke in the database
 func (store *DBStore) CreateJoke(jokeString string) error {

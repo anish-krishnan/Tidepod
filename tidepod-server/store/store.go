@@ -3,7 +3,7 @@ package store
 import (
 	"mime/multipart"
 
-	"github.com/anish-krishnan/Tidepod/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"gorm.io/gorm"
 )
 

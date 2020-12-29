@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/anish-krishnan/Tidepod/entity"
-	"github.com/anish-krishnan/Tidepod/util"
-	"github.com/anish-krishnan/Tidepod/workflow"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/util"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/workflow"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm/clause"
 )

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/anish-krishnan/Tidepod/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"github.com/gin-gonic/gin"
 )
 

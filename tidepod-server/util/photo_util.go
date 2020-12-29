@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/anish-krishnan/Tidepod/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	"golang.org/x/image/tiff"

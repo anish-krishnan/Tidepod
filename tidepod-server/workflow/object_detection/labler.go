@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/anish-krishnan/Tidepod/workflow/object_detection/models"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/workflow/object_detection/models"
 )
 
 // GetLabelsForFile converts a txt file containing a label on each new line

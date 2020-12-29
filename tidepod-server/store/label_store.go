@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/anish-krishnan/Tidepod/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"gorm.io/gorm/clause"
 )
 

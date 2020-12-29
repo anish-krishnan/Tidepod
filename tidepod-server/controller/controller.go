@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/anish-krishnan/Tidepod/entity"
-	"github.com/anish-krishnan/Tidepod/store"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/store"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

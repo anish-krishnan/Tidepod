@@ -1,8 +1,8 @@
 package store
 
 import (
-	"github.com/anish-krishnan/Tidepod/entity"
-	facerecognition "github.com/anish-krishnan/Tidepod/workflow/face_recognition"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
+	facerecognition "github.com/anish-krishnan/Tidepod/tidepod-server/workflow/face_recognition"
 	"gorm.io/gorm/clause"
 )
 

@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	"github.com/Kagami/go-face"
-	"github.com/anish-krishnan/Tidepod/entity"
-	objectdetection "github.com/anish-krishnan/Tidepod/workflow/object_detection"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
+	objectdetection "github.com/anish-krishnan/Tidepod/tidepod-server/workflow/object_detection"
 	"github.com/codingsince1985/geo-golang"
 	"github.com/codingsince1985/geo-golang/mapquest/open"
 	"github.com/disintegration/imaging"
