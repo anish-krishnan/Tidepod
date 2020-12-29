@@ -18,7 +18,6 @@ import (
 //  2. labels the image using the tensorflow object detection package
 //  3. adds the entry to the database
 func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileHeader) error {
-	fmt.Println("working on", filename)
 	var newPhoto entity.Photo
 	store.DB.Create(&newPhoto)
 
@@ -53,7 +52,6 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 // CreatePhotoFromMobile functions identically to CreatePhoto but uses EXIF
 // data in the 'info' json object
 func (store *DBStore) CreatePhotoFromMobile(filename string, uploadedFile *multipart.FileHeader, info map[string]interface{}) error {
-	fmt.Println("working on", filename)
 	var newPhoto entity.Photo
 	store.DB.Create(&newPhoto)
 
@@ -118,8 +116,6 @@ func (store *DBStore) DeletePhoto(photoID int) error {
 	var photo entity.Photo
 	store.DB.Preload(clause.Associations).First(&photo, photoID)
 
-	fmt.Println("Deleting photo: ", photo)
-
 	// Delete the boxes
 	for _, box := range photo.Boxes {
 		err := store.DeleteBox(box)
@@ -153,7 +149,6 @@ func (store *DBStore) IsDuplicatePhoto(info map[string]interface{}) bool {
 	var newPhoto entity.Photo
 	newPhoto.OriginalFilename = info["name"].(string)
 	util.UpdateMobilePhotoWithEXIF(&newPhoto, info["info"].(map[string]interface{}))
-	fmt.Println("working on ", newPhoto)
 
 	var photos []*entity.Photo
 	store.DB.Where("timestamp = ? AND original_filename = ?", newPhoto.Timestamp, newPhoto.OriginalFilename).Find(&photos)
