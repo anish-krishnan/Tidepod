@@ -16,6 +16,7 @@ After building my Network Array Storage Server while staying at home during quar
 - Be able to upload/download photos using the web interface
 - Face detection and **recognition** (using [go-face](https://github.com/Kagami/go-face))
 - Label photos automatically based on semantics (using [tensorflow](https://www.tensorflow.org/))
+- Highly *parallelize* the above workflows that run on all uploaded images
 - Automatic **fast** duplicate photo detection on upload using metadata
 
 ## :steam_locomotive: Current Goals
