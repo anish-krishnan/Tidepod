@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AssignFaceToBoxHandler assigns the specified face in the
+// database (or creates a new one if necessary) to the provided box
 func AssignFaceToBoxHandler(c *gin.Context) {
 	valueParts := strings.Split(c.Param("boxIDandName"), "+")
 	boxid, err := strconv.Atoi(valueParts[0])

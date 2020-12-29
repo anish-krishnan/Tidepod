@@ -7,6 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// Store is an interface defining all methods to interact with the models:
+//	- Joke
+//	- Photo
+//	- Label
+//	- Face
+//	- Box
 type Store interface {
 	CreateJoke(jokeString string) error
 	DeleteJoke(jokeID int) error
@@ -31,6 +37,7 @@ type Store interface {
 	AssignFaceToBox(boxID int, faceName string) (entity.Box, error)
 }
 
+// DBStore implements the Store interface
 type DBStore struct {
 	DB *gorm.DB
 }

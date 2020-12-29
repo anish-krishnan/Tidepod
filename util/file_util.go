@@ -8,6 +8,9 @@ import (
 	"github.com/h2non/filetype"
 )
 
+// These constants define the common MIME types of data
+// MIME type is a label used to identify a type of data and
+// allows tidepod to transcode different types of media
 const (
 	MimeTypeJpeg   = "image/jpeg"
 	MimeTypePng    = "image/png"

@@ -198,11 +198,11 @@ func ConvertImageToJPG(originalFilename string, jpgFilename string) {
 	// create image from file
 	var imgSrc image.Image
 
-	if mimeType == "image/jpeg" {
+	if mimeType == MimeTypeJpeg {
 		imgSrc, err = jpeg.Decode(originalImage)
-	} else if mimeType == "image/png" {
+	} else if mimeType == MimeTypePng {
 		imgSrc, err = png.Decode(originalImage)
-	} else if mimeType == "image/tiff" {
+	} else if mimeType == MimeTypeTiff {
 		imgSrc, err = tiff.Decode(originalImage)
 	} else {
 		panic(fmt.Sprintf("Can't convert get image from mime type %s", mimeType))

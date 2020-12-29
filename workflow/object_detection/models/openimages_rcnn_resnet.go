@@ -9,6 +9,7 @@ import (
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 )
 
+// Rcnn contains tensorflow model and human-readable string labels
 type Rcnn struct {
 	model  *tf.SavedModel
 	labels []string

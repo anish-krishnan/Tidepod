@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Get faces
+// GetFacesHandler gets all faces
 func GetFacesHandler(c *gin.Context) {
 	faces, err := MyStore.GetFaces()
 
@@ -20,7 +20,7 @@ func GetFacesHandler(c *gin.Context) {
 	}
 }
 
-// Get a specific face
+// GetFaceHandler gets a specific face by ID
 func GetFaceHandler(c *gin.Context) {
 	if faceid, err := strconv.Atoi(c.Param("faceID")); err == nil {
 		face, err := MyStore.GetFace(faceid)
@@ -36,7 +36,7 @@ func GetFaceHandler(c *gin.Context) {
 	}
 }
 
-// Run the face classifier
+// ClassifyFacesHandler runs the face classifier on all unassigned images
 func ClassifyFacesHandler(c *gin.Context) {
 	MyStore.ClassifyFaces()
 	c.String(http.StatusOK, "Running!")

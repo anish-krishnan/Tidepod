@@ -108,7 +108,7 @@ func PreUploadMobileHandler(c *gin.Context) {
 }
 
 // UploadMobileHandler handles the upload of multiple files to "photo_storage/"
-// folder from a mobile device. The EXIF data arrives seperately in the request
+// folder from a mobile device. The EXIF data arrives separately in the request
 func UploadMobileHandler(c *gin.Context) {
 
 	err := c.Request.ParseMultipartForm(1000)

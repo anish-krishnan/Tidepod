@@ -19,7 +19,7 @@ export default class UploadMainContainer extends React.Component {
     let assetsPaged = await MediaLibrary.getAssetsAsync({ first: 100 });
     let assets = assetsPaged.assets
 
-    console.log("original assets\n", assetsPaged)
+    // console.log("original assets\n", assetsPaged)
 
     let preformdata = new FormData()
     let formdata = new FormData()
@@ -33,7 +33,8 @@ export default class UploadMainContainer extends React.Component {
     }
 
 
-    var photoIndices = await fetch("http://192.168.1.11:3000/api/preuploadmobile", {
+
+    var photoIndices = await fetch("http://73.71.1.40:3000/api/preuploadmobile", {
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -53,7 +54,7 @@ export default class UploadMainContainer extends React.Component {
       let filteredFormData = new FormData()
       filteredFormData.append('files', { uri: asset.uri, name: asset.filename })
       filteredFormData.append('infoArray', JSON.stringify(assetInfo))
-      await fetch("http://192.168.1.11:3000/api/uploadmobile", {
+      await fetch("http://73.71.1.40:3000/api/uploadmobile", {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',

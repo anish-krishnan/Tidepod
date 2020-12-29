@@ -1,4 +1,4 @@
-package object_detection
+package objectdetection
 
 import (
 	"fmt"
@@ -8,6 +8,8 @@ import (
 	"github.com/anish-krishnan/Tidepod/workflow/object_detection/models"
 )
 
+// GetLabelsForFile converts a txt file containing a label on each new line
+// to a string array
 func GetLabelsForFile(filename string) ([]string, error) {
 	model := models.NewCoco()
 	err := model.Load()

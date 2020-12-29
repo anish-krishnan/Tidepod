@@ -11,6 +11,7 @@ import (
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 )
 
+// Coco contains tensorflow model and human-readable string labels
 type Coco struct {
 	model  *tf.SavedModel
 	labels []string

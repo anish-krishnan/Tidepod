@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Get list of jokes
+// GetJokesHandler gets a list of all jokes stored in the database
 func GetJokesHandler(c *gin.Context) {
 	jokes, err := MyStore.GetJokes()
 
@@ -20,7 +20,7 @@ func GetJokesHandler(c *gin.Context) {
 	}
 }
 
-// Create a joke
+// CreateJokeHandler create a joke
 func CreateJokeHandler(c *gin.Context) {
 	err := MyStore.CreateJoke(c.Param("joke"))
 	if err == nil {
@@ -30,7 +30,7 @@ func CreateJokeHandler(c *gin.Context) {
 	}
 }
 
-// Delete a joke with provided ID
+// DeleteJokeHandler deletes specific joke with provided ID
 func DeleteJokeHandler(c *gin.Context) {
 	if jokeid, err := strconv.Atoi(c.Param("jokeID")); err == nil {
 		err := MyStore.DeleteJoke(jokeid)

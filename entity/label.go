@@ -1,6 +1,6 @@
 package entity
 
-// Label contains information about a single label
+// Label is used for photo categorization
 type Label struct {
 	ID        int `gorm:"primary_key" yaml:"-"`
 	LabelName string

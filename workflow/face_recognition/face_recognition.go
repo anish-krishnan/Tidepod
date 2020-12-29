@@ -1,4 +1,4 @@
-package face_recognition
+package facerecognition
 
 import (
 	"github.com/Kagami/go-face"
@@ -6,7 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// ClassifyFacesByBoxEngine trains on already labelled faces, and classifies all other photos
+// ClassifyFacesByBoxEngine trains on already labelled faces, and
+// classifies all other photos
 func ClassifyFacesByBoxEngine(db *gorm.DB, boxes []*entity.Box) map[int]string {
 	// Mapping photoIDs to respective boxes that are in train or test
 	var trainSet []int

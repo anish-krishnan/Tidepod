@@ -12,7 +12,7 @@ import (
 
 	"github.com/Kagami/go-face"
 	"github.com/anish-krishnan/Tidepod/entity"
-	"github.com/anish-krishnan/Tidepod/workflow/object_detection"
+	objectdetection "github.com/anish-krishnan/Tidepod/workflow/object_detection"
 	"github.com/codingsince1985/geo-golang"
 	"github.com/codingsince1985/geo-golang/mapquest/open"
 	"github.com/disintegration/imaging"
@@ -44,7 +44,7 @@ func RunPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
 // detection module. Updates database entry appropriately with labels
 func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
 	// Get Labels
-	labels, err := object_detection.GetLabelsForFile(photo.FilePath)
+	labels, err := objectdetection.GetLabelsForFile(photo.FilePath)
 	if err != nil {
 		panic(err)
 	}

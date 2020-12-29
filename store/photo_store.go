@@ -111,6 +111,7 @@ func (store *DBStore) GetPhoto(photoID int) (entity.Photo, error) {
 	return photo, nil
 }
 
+// DeletePhoto deletes a specific photo by ID
 func (store *DBStore) DeletePhoto(photoID int) error {
 	// Get the Photo entry to delete from filesystem first
 	var photo entity.Photo
