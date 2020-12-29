@@ -1,6 +1,7 @@
-[![Code Quality](https://goreportcard.com/badge/github.com/anish-krishnan/Tidepod)][goreport]
+[![Code Quality](https://goreportcard.com/badge/github.com/anish-krishnan/tidepod)][goreport]
 
-![alt text](favicon.png)
+<img src="favicon.png" alt="favicon" width="200"/>
+
 # Tidepod
 A self hosted photo management platform that supports automatic face recognition and object detection. Built with Go
 
