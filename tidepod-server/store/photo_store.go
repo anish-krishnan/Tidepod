@@ -31,6 +31,13 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 
 	var c *gin.Context
 	c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+tempFilename)
+
+	// Timestamp
+	fileinfo, err := os.Stat("photo_storage/saved/" + tempFilename)
+	if err == nil {
+		newPhoto.Timestamp = fileinfo.ModTime()
+	}
+
 	util.ConvertImageToJPG(tempFilename, newFilename)
 	util.UpdatePhotoRotation(newFilename)
 
@@ -88,7 +95,7 @@ func (store *DBStore) CreatePhotoFromMobile(filename string, uploadedFile *multi
 // GetPhotos gets all photos
 func (store *DBStore) GetPhotos() ([]*entity.Photo, error) {
 	var photos []*entity.Photo
-	store.DB.Find(&photos)
+	store.DB.Order("timestamp desc").Find(&photos)
 	// for _, photo := range photos {
 	// 	for j, box := range photo.Boxes {
 	// 		var newBox entity.Box

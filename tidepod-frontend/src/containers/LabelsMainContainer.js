@@ -27,7 +27,7 @@ class LabelsMainContainer extends React.Component {
   render() {
     return (
       <div className="labels-main-container" >
-        <h3>Labels Main Container</h3>
+        <h3>Labels</h3>
 
         {this.state.labels.map(label => {
           return (

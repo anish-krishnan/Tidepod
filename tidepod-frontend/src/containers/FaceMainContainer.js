@@ -41,7 +41,7 @@ class FaceMainContainer extends React.Component {
   render() {
     return (
       <div className="labels-main-container" >
-        <h3>Face Main Container : {this.state.face.Name}</h3>
+        <h3>Face : {this.state.face.Name}</h3>
         <Gallery onClick={this.onClick} photos={
           this.state.photos.map(photo => {
             return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }

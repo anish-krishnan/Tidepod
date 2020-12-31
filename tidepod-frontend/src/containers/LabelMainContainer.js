@@ -39,7 +39,7 @@ class LabelMainContainer extends React.Component {
   render() {
     return (
       <div className="labels-main-container" >
-        <h3>Label Main Container : {this.state.label.LabelName}</h3>
+        <h3>Label : {this.state.label.LabelName}</h3>
         <Gallery onClick={this.onClick} photos={
           this.state.photos.map(photo => {
             return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }

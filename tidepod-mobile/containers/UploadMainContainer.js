@@ -10,13 +10,27 @@ import * as Permissions from 'expo-permissions';
 
 export default class UploadMainContainer extends React.Component {
 
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      uploadLength: 0,
+      currentUploadNum: 0,
+      currentImageURI: "",
+      uploading: false,
+
+      errorFound: false,
+      errorStatus: "",
+    };
+  }
+
   fetchAlbums = async () => {
     let { status } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
 
     if (status !== 'granted') {
       console.log("Permissions not granted!")
     }
-    let assetsPaged = await MediaLibrary.getAssetsAsync({ first: 100 });
+    let assetsPaged = await MediaLibrary.getAssetsAsync({ first: 10 });
     let assets = assetsPaged.assets
 
     // console.log("original assets\n", assetsPaged)
@@ -43,16 +57,35 @@ export default class UploadMainContainer extends React.Component {
       .then(resp => resp.json())
       .catch(err => {
         console.log("error", err)
+        this.setState({
+          errorFound: true,
+          errorStatus: err.toString()
+        })
       })
+
+    if (photoIndices == null) {
+      this.setState({
+        uploading: false
+      })
+      return;
+    }
 
     var index;
     for (var i = 0; i < photoIndices.length; i++) {
       index = photoIndices[i]
       asset = assets[index]
+      this.setState({
+        uploading: true,
+        currentImageURI: asset.uri,
+        currentUploadNum: i + 1,
+        uploadLength: photoIndices.length,
+      })
+      console.log("async", this.state.uploading, this.state.currentImageURI)
       assetInfo = await MediaLibrary.getAssetInfoAsync(asset)
       let filteredFormData = new FormData()
       filteredFormData.append('files', { uri: asset.uri, name: asset.filename })
       filteredFormData.append('infoArray', JSON.stringify(assetInfo))
+
       await fetch("http://192.168.1.11:3000/api/uploadmobile", {
         method: 'POST',
         headers: {
@@ -63,8 +96,15 @@ export default class UploadMainContainer extends React.Component {
         console.log("response", response)
       }).catch(err => {
         console.log("error", err)
+        this.setState({
+          errorFound: true,
+          errorStatus: err.toString()
+        })
       })
     }
+    this.setState({
+      uploading: false
+    })
 
   }
 
@@ -74,12 +114,26 @@ export default class UploadMainContainer extends React.Component {
 
 
   render() {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>This is the uploader</Text>
-        <Image source={{ width: 100, height: 100, uri: "assets-library://asset/asset.JPG?id=202EE2C2-1397-49D0-A8E1-C75B7BEDD497&ext=JPG" }} />
-      </SafeAreaView>
-    );
+    if (this.state.errorFound) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <Text>Error: {this.state.errorStatus}</Text>
+        </SafeAreaView>
+      )
+    } else if (this.state.uploading) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <Text>Uploading {this.state.currentUploadNum} of {this.state.uploadLength}</Text>
+          <Image source={{ width: 200, height: 200, uri: this.state.currentImageURI }} />
+        </SafeAreaView>
+      );
+    } else {
+      return (
+        <SafeAreaView style={styles.container}>
+          <Text>Everything is up to date</Text>
+        </SafeAreaView>
+      );
+    }
   }
 }
 

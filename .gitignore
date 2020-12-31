@@ -4,3 +4,4 @@ tidepod-server/workflow/object_detection/faster_rcnn_openimages_v4_inception_res
 
 # Credentials
 tidepod-server/credentials/*
+tidepod-frontend/.env

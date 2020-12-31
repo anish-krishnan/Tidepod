@@ -27,7 +27,7 @@ class FacesMainContainer extends React.Component {
   render() {
     return (
       <div className="labels-main-container" >
-        <h3>Faces Main Container</h3>
+        <h3>Faces</h3>
 
         {this.state.faces.map(face => {
           return (
