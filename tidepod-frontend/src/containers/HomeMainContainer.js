@@ -40,7 +40,7 @@ class HomeMainContainer extends React.Component {
       const formData = new FormData();
       formData.append('files', file)
       console.log("BEFORE")
-      await fetch("http://localhost:3000/api/upload", {
+      await fetch("/api/upload", {
         method: 'POST',
         body: formData
       })
