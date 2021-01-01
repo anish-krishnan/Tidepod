@@ -3,12 +3,13 @@ import '../App.css';
 
 import Nav from '../containers/Nav'
 import HomeMainContainer from './HomeMainContainer'
+import PhotosByMonthContainer from '../containers/PhotosByMonthContainer'
 import PhotoMainContainer from '../containers/PhotoMainContainer'
+import Photo from '../components/Photo'
 import LabelMainContainer from '../containers/LabelMainContainer'
 import LabelsMainContainer from '../containers/LabelsMainContainer'
 import FacesMainContainer from '../containers/FacesMainContainer'
 import FaceMainContainer from '../containers/FaceMainContainer'
-import Photo from '../components/Photo'
 import {
   BrowserRouter as Router,
   Switch,
@@ -24,7 +25,8 @@ function App() {
         <Nav />
 
         <Switch>
-          <Route path='/' component={HomeMainContainer} exact />
+          <Route path='/' component={PhotosByMonthContainer} exact />
+          <Route path='/byMonth' component={PhotosByMonthContainer} exact />
           <Route path='/photo/:photoId' component={PhotoMainContainer} />
           <Route path='/labels' component={LabelsMainContainer} />
           <Route path='/label/:labelId' component={LabelMainContainer} />

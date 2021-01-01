@@ -25,6 +25,24 @@ func GetPhotosHandler(c *gin.Context) {
 	}
 }
 
+// GetPhotosByMonthHandler gets all photos
+func GetPhotosByMonthHandler(c *gin.Context) {
+
+	result, err := MyStore.GetPhotosByMonth()
+
+	for _, pair := range result {
+		fmt.Println(pair.Month, pair.Photos)
+	}
+
+	if err == nil {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusOK, result)
+	} else {
+		panic(err)
+	}
+}
+
 // GetPhotoHandler gets a specific photo by ID
 func GetPhotoHandler(c *gin.Context) {
 	if photoid, err := strconv.Atoi(c.Param("photoID")); err == nil {
@@ -45,12 +63,17 @@ func GetPhotoHandler(c *gin.Context) {
 // folder
 func UploadHandler(c *gin.Context) {
 
+	err := c.Request.ParseMultipartForm(1000)
+
 	form, err := c.MultipartForm()
+
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
 		fmt.Println("error getting multipartform", err)
 		panic(err)
 	}
+
+	fmt.Println(form.File, form.Value)
 
 	files := form.File["files"]
 
@@ -58,11 +81,6 @@ func UploadHandler(c *gin.Context) {
 
 	for _, file := range files {
 		filename := filepath.Base(file.Filename)
-		// if err := c.SaveUploadedFile(file, "photo_storage/temp/"+filename); err != nil {
-		// 	c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
-		// 	panic(err)
-		// 	return
-		// }
 
 		err := MyStore.CreatePhoto(filename, file)
 		if err != nil {
@@ -70,8 +88,9 @@ func UploadHandler(c *gin.Context) {
 		}
 	}
 
-	// c.String(http.StatusOK, fmt.Sprintf("uploaded %d files!", len(files)))
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(fmt.Sprintf("uploaded %d files! <a href='http://localhost:3000'>back</a>", len(files))))
+	// fmt.Println("\n\n\n\n\n\n\n\nRESPONDING WITH", nil)
+	c.JSON(http.StatusOK, nil)
+	// c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(fmt.Sprintf("uploaded %d files! <a href='http://localhost:3000'>back</a>", len(files))))
 }
 
 // PreUploadMobileHandler handles takes data about photos that the mobile
@@ -103,7 +122,6 @@ func PreUploadMobileHandler(c *gin.Context) {
 		}
 	}
 
-	fmt.Println("RESPONDING WITH", result)
 	c.JSON(http.StatusOK, result)
 }
 

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/anish-krishnan/Tidepod/tidepod-server/controller"
+	"github.com/gin-gonic/contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
@@ -13,12 +14,12 @@ func main() {
 	// Set up routes
 	router := gin.Default()
 
-	// router.Use(cors.New(cors.Config{
-	// 	AllowedOrigins: []string{"http://localhost:3000", "http://localhost:3001"},
-	// 	AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-	// 	AllowedHeaders: []string{"Origin", "Content-Length", "Content-Type", "Access-Control-Allow-Origin"},
-	// 	ExposedHeaders: []string{"X-Total-Count"},
-	// }))
+	router.Use(cors.New(cors.Config{
+		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:3001"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowedHeaders: []string{"Origin", "Content-Length", "Content-Type", "Access-Control-Allow-Origin"},
+		ExposedHeaders: []string{"X-Total-Count", "Access-Control-Allow-Origin", "Access-Control-Allow-Methods"},
+	}))
 
 	// Serve frontend static files
 	router.Use(static.Serve("/", static.LocalFile("./views", true)))
@@ -42,6 +43,7 @@ func main() {
 
 	// Photos Routes
 	api.GET("/photos", controller.GetPhotosHandler)
+	api.GET("/photosByMonth", controller.GetPhotosByMonthHandler)
 	api.GET("/photo/:photoID", controller.GetPhotoHandler)
 	api.POST("/photos/delete/:photoID", controller.DeletePhotoHandler)
 	api.POST("/upload", controller.UploadHandler)

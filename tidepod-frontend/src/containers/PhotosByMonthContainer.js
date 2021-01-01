@@ -1,18 +1,20 @@
 import React from 'react'
 import Gallery from 'react-photo-gallery';
 
-class HomeMainContainer extends React.Component {
+class PhotosByMonthContainer extends React.Component {
   state = {
-    photos: [],
+    photosByMonth: [],
     files: []
   }
 
   componentDidMount() {
-    fetch("/api/photos")
+    fetch("/api/photosByMonth")
       .then(resp => resp.json())
-      .then(photos => {
+      .then(photosByMonth => {
+        console.log(photosByMonth)
+
         this.setState({
-          photos: photos
+          photosByMonth: photosByMonth
         })
       })
   }
@@ -66,15 +68,24 @@ class HomeMainContainer extends React.Component {
           <input type="file" name="files" onChange={this.onChange} multiple /><br /><br />
           <input type="button" value="upload" onClick={this.handleUpload.bind(this)} />
         </form>
-        <Gallery onClick={this.onClick} photos={
-          this.state.photos.map(photo => {
-            return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }
-          })
-        } />
+
+        {this.state.photosByMonth.map(x => {
+          return (
+            <div>
+              <h2 align="left">{x.Month}</h2>
+              <Gallery onClick={this.onClick} photos={
+                x.Photos.map(photo => {
+                  return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }
+                })
+              } />
+              <br />
+            </div>
+          )
+        })}
       </div>
     )
   }
 }
 
 
-export default HomeMainContainer;
+export default PhotosByMonthContainer;

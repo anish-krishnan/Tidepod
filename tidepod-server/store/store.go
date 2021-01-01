@@ -24,6 +24,7 @@ type Store interface {
 	GetPhoto(photoID int) (entity.Photo, error)
 	DeletePhoto(photoID int) error
 	GetPhotos() ([]*entity.Photo, error)
+	GetPhotosByMonth() ([]*MonthPhotoPair, error)
 	IsDuplicatePhoto(info map[string]interface{}) bool
 
 	GetLabels() ([]*entity.Label, error)

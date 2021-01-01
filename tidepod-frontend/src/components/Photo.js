@@ -83,6 +83,10 @@ class Photo extends React.Component {
                     <td><b>Aperture</b></td>
                     <td>{this.props.photo.ApertureFStop}</td>
                   </tr>
+                  <tr>
+                    <td><b>Filename</b></td>
+                    <td>{this.props.photo.OriginalFilename}</td>
+                  </tr>
                 </tbody>
               </table>
 

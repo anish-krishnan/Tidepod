@@ -6,7 +6,6 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
-	"io"
 	"os"
 	"time"
 
@@ -199,18 +198,10 @@ func ConvertImageToJPG(originalFilename string, jpgFilename string) {
 	// create image from file
 	var imgSrc image.Image
 
+	fmt.Println("MIME TYPE", mimeType)
+
 	if mimeType == MimeTypeJpeg {
-		destination, err := os.Create("photo_storage/saved/" + jpgFilename)
-		if err != nil {
-			panic(err)
-		}
-		defer destination.Close()
-		_, err = io.Copy(destination, originalImage)
-		if err != nil {
-			panic(err)
-		}
-		relativeOriginalFilePath := "photo_storage/saved/" + originalFilename
-		err = os.Remove(relativeOriginalFilePath)
+		err := os.Rename("photo_storage/saved/"+originalFilename, "photo_storage/saved/"+jpgFilename)
 		if err != nil {
 			panic(err)
 		}
