@@ -69,7 +69,7 @@ class PhotosByMonthContainer extends React.Component {
           <input type="button" value="upload" onClick={this.handleUpload.bind(this)} />
         </form>
 
-        {this.state.photosByMonth.map(x => {
+        {this.state.photosByMonth && this.state.photosByMonth.map(x => {
           return (
             <div>
               <h2 align="left">{x.Month}</h2>
