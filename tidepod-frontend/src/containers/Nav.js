@@ -1,5 +1,6 @@
 import React from 'react'
 import logo from '../sample_logo.png'
+import Logout from '../components/Logout'
 import {
   BrowserRouter as Router,
   Switch,
@@ -34,7 +35,7 @@ class Nav extends React.Component {
             </li>
 
             <button onClick={this.handleRunFaceDetect} class="btn btn-sm btn-outline-secondary" type="button">Run Face Detect</button>
-
+            <Logout updateLoginStatus={this.props.updateLoginStatus} />
           </ul>
         </div>
         <form class="form-inline my-2 my-lg-0">
