@@ -104,20 +104,18 @@ func UpdateMobilePhotoWithEXIF(photo *entity.Photo, info map[string]interface{})
 	}
 }
 
-// UpdatePhotoRotation checks the photo for rotation inconsistencies
-// and rotates the image appropriately
-func UpdatePhotoRotation(filename string) {
-	file, err := os.Open("photo_storage/saved/" + filename)
+// GetPhotoRotation reads the EXIF data and returns
+// the rotation angle of the photo
+func GetPhotoRotation(fullFilePath string) float64 {
+	file, err := os.Open(fullFilePath)
 	if err != nil {
 		panic(err)
 	}
-
 	x, err := exif.Decode(file)
 	var rotation float64 = 0
 
 	if err == nil {
 		orientationRaw, err := x.Get("Orientation")
-
 		if err == nil {
 			orientation := orientationRaw.String()
 			if orientation == "3" {
@@ -128,17 +126,23 @@ func UpdatePhotoRotation(filename string) {
 				rotation = 90
 			}
 		}
-
 	}
-
 	file.Close()
+	return rotation
+}
+
+// UpdatePhotoRotation checks the photo for rotation inconsistencies
+// and rotates the image appropriately
+func UpdatePhotoRotation(fullFilePath string) {
+	rotation := GetPhotoRotation(fullFilePath)
+
 	if rotation != 0 {
-		image, err := imaging.Open("photo_storage/saved/" + filename)
+		image, err := imaging.Open(fullFilePath)
 		if err != nil {
 			panic(err)
 		}
 		rotatedImage := imaging.Rotate(image, rotation, color.Gray{})
-		imaging.Save(rotatedImage, "photo_storage/saved/"+filename)
+		imaging.Save(rotatedImage, fullFilePath)
 	}
 }
 

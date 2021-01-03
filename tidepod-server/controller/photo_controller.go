@@ -76,13 +76,19 @@ func UploadHandler(c *gin.Context) {
 	fmt.Println(form.File, form.Value)
 
 	files := form.File["files"]
+	infoArray := form.Value["infoArray"]
 
 	fmt.Println("Files", form.File)
+	fmt.Println("infoArray", infoArray)
 
-	for _, file := range files {
+	for i, file := range files {
 		filename := filepath.Base(file.Filename)
+		unixTime, err := strconv.ParseInt(infoArray[i], 10, 64)
+		if err != nil {
+			panic(err)
+		}
 
-		err := MyStore.CreatePhoto(filename, file)
+		err = MyStore.CreatePhoto(filename, file, unixTime)
 		if err != nil {
 			panic(err)
 		}
@@ -145,13 +151,10 @@ func UploadMobileHandler(c *gin.Context) {
 		filename := filepath.Base(file.Filename)
 		info := infoArray[i]
 
-		fmt.Println("\n\n\n", info, "\n\n\n")
-
 		var raw map[string]interface{}
 		if err := json.Unmarshal([]byte(info), &raw); err != nil {
 			panic(err)
 		}
-		fmt.Println(raw)
 
 		err := MyStore.CreatePhotoFromMobile(filename, file, raw)
 		if err != nil {

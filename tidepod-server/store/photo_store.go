@@ -25,7 +25,7 @@ type MonthPhotoPair struct {
 //  1. gets EXIF information
 //  2. labels the image using the tensorflow object detection package
 //  3. adds the entry to the database
-func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileHeader) error {
+func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileHeader, unixTime int64) error {
 	var newPhoto entity.Photo
 	store.DB.Create(&newPhoto)
 
@@ -41,12 +41,11 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+tempFilename)
 
 	// Timestamp
-	fileinfo, err := os.Stat("photo_storage/saved/" + tempFilename)
-	if err == nil {
-		newPhoto.Timestamp = fileinfo.ModTime()
-	}
-	fmt.Println(filename)
-	fmt.Println("creating1", newPhoto.Timestamp)
+	newPhoto.Timestamp = time.Unix(int64(unixTime/1000), 0)
+	// fileinfo, err := os.Stat("photo_storage/saved/" + tempFilename)
+	// if err == nil {
+	// newPhoto.Timestamp = fileinfo.ModTime()
+	// }
 
 	util.ConvertImageToJPG(tempFilename, newFilename)
 
@@ -55,10 +54,10 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 		panic(err)
 	}
 	util.UpdatePhotoWithEXIF(&newPhoto, file)
-	fmt.Println("creating2", newPhoto.Timestamp)
 	file.Close()
 
-	util.UpdatePhotoRotation(newFilename)
+	// Rotation logic has been moved to the thumbnail
+	// util.UpdatePhotoRotation(newFilename)
 
 	store.DB.Save(newPhoto)
 
@@ -85,7 +84,8 @@ func (store *DBStore) CreatePhotoFromMobile(filename string, uploadedFile *multi
 	var c *gin.Context
 	c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+tempFilename)
 	util.ConvertImageToJPG(tempFilename, newFilename)
-	util.UpdatePhotoRotation(newFilename)
+	// Rotation logic has been moved to the thumbnail
+	// util.UpdatePhotoRotation(newFilename)
 
 	file, err := os.Open("photo_storage/saved/" + newFilename)
 	if err != nil {
@@ -122,7 +122,6 @@ func (store *DBStore) GetPhotosByMonth() ([]*MonthPhotoPair, error) {
 	for _, photo := range photos {
 		ts := photo.Timestamp
 		monthYear := fmt.Sprintf("%s %d", ts.Month(), ts.Year())
-		fmt.Println(ts.Month(), ts.Year(), ts)
 		if len(monthToPhotos[monthYear]) == 0 {
 			keys = append(keys, monthYear)
 		}

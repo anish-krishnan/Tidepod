@@ -19,7 +19,7 @@ type Store interface {
 	LikeJoke(jokeID int) error
 	GetJokes() ([]*entity.Joke, error)
 
-	CreatePhoto(filename string, uploadedFile *multipart.FileHeader) error
+	CreatePhoto(filename string, uploadedFile *multipart.FileHeader, unixTime int64) error
 	CreatePhotoFromMobile(filename string, uploadedFile *multipart.FileHeader, info map[string]interface{}) error
 	GetPhoto(photoID int) (entity.Photo, error)
 	DeletePhoto(photoID int) error

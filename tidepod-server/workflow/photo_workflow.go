@@ -4,14 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/color"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/Kagami/go-face"
 	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/util"
 	objectdetection "github.com/anish-krishnan/Tidepod/tidepod-server/workflow/object_detection"
 	"github.com/codingsince1985/geo-golang"
 	"github.com/codingsince1985/geo-golang/mapquest/open"
@@ -34,20 +38,49 @@ func init() {
 
 // RunPhotoWorkflow runs the workflows sequentially
 func RunPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
+	createFormattedTempImage(photo.FilePath, "./photo_storage/TEMP/"+photo.FilePath)
+
 	CreateThumbnail(photo)
 	UpdatePhotoWithReadableLocation(db, photo)
 	LabelPhoto(db, photo)
 	RunFaceDetect(db, photo)
+
+	err := os.Remove("./photo_storage/TEMP/" + photo.FilePath)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func createFormattedTempImage(filename string, tempFilePath string) {
+	source, err := os.Open("./photo_storage/saved/" + filename)
+	if err != nil {
+		panic(err)
+	}
+	defer source.Close()
+
+	destination, err := os.Create(tempFilePath)
+	if err != nil {
+		panic(err)
+	}
+	_, err = io.Copy(destination, source)
+	if err != nil {
+		panic(err)
+	}
+	destination.Close()
+
+	util.UpdatePhotoRotation(tempFilePath)
 }
 
 // LabelPhoto takes a photo and runs it through the tensorflow object
 // detection module. Updates database entry appropriately with labels
 func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
+
 	// Get Labels
-	labels, err := objectdetection.GetLabelsForFile(photo.FilePath)
+	labels, err := objectdetection.GetLabelsForFile("./photo_storage/TEMP/" + photo.FilePath)
 	if err != nil {
 		panic(err)
 	}
+
 	labelEntries := []entity.Label{}
 	for _, label := range labels {
 		var labelEntry entity.Label
@@ -65,13 +98,21 @@ func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
 }
 
 // CreateThumbnail takes a photo, creates a 200x200 thumbnail
-// and saves it to the photo_storage/thumbnails/ directory
+// and saves it to the photo_storage/thumbnails/ directory.
+// It also rotates the thumbnail as needed
 func CreateThumbnail(photo *entity.Photo) {
+	rotation := util.GetPhotoRotation("photo_storage/saved/" + photo.FilePath)
+
 	img, err := imaging.Open("photo_storage/saved/" + photo.FilePath)
+
 	if err != nil {
 		panic(err)
 	}
 	thumb := imaging.Thumbnail(img, 200, 200, imaging.CatmullRom)
+
+	if rotation != 0 {
+		thumb = imaging.Rotate(thumb, rotation, color.Gray{})
+	}
 
 	err = imaging.Save(thumb, "photo_storage/thumbnails/"+photo.FilePath)
 	if err != nil {
@@ -86,7 +127,7 @@ func RunFaceDetect(db *gorm.DB, photo *entity.Photo) {
 	fileParts := strings.Split(photo.FilePath, ".")
 	ext := fileParts[len(fileParts)-1]
 
-	img, err := imaging.Open("./photo_storage/saved/" + photo.FilePath)
+	img, err := imaging.Open("./photo_storage/TEMP/" + photo.FilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +138,7 @@ func RunFaceDetect(db *gorm.DB, photo *entity.Photo) {
 	}
 	defer rec.Close()
 
-	faces, err := rec.RecognizeFile("./photo_storage/saved/" + photo.FilePath)
+	faces, err := rec.RecognizeFile("./photo_storage/TEMP/" + photo.FilePath)
 	if err != nil {
 		panic(err)
 	}

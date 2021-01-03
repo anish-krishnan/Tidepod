@@ -10,7 +10,7 @@ import (
 
 // GetLabelsForFile converts a txt file containing a label on each new line
 // to a string array
-func GetLabelsForFile(filename string) ([]string, error) {
+func GetLabelsForFile(fullFilePath string) ([]string, error) {
 	model := models.NewCoco()
 	err := model.Load()
 	if err != nil {
@@ -20,7 +20,7 @@ func GetLabelsForFile(filename string) ([]string, error) {
 
 	defer model.CloseSession()
 
-	file, err := os.Open("photo_storage/saved/" + filename)
+	file, err := os.Open(fullFilePath)
 	if err != nil {
 		panic(err)
 	}
