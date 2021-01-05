@@ -8,11 +8,15 @@ import (
 	"strconv"
 
 	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
+	"github.com/anish-krishnan/Tidepod/tidepod-server/service"
 	"github.com/gin-gonic/gin"
 )
 
 // GetPhotosHandler gets all photos
 func GetPhotosHandler(c *gin.Context) {
+	if !service.VerifyAPIRequest(c, c.Request.Header["Token"]) {
+		return
+	}
 
 	photos, err := MyStore.GetPhotos()
 
@@ -27,6 +31,9 @@ func GetPhotosHandler(c *gin.Context) {
 
 // GetPhotosByMonthHandler gets all photos
 func GetPhotosByMonthHandler(c *gin.Context) {
+	if !service.VerifyAPIRequest(c, c.Request.Header["Token"]) {
+		return
+	}
 
 	result, err := MyStore.GetPhotosByMonth()
 
@@ -45,6 +52,9 @@ func GetPhotosByMonthHandler(c *gin.Context) {
 
 // GetPhotoHandler gets a specific photo by ID
 func GetPhotoHandler(c *gin.Context) {
+	if !service.VerifyAPIRequest(c, c.Request.Header["Token"]) {
+		return
+	}
 	if photoid, err := strconv.Atoi(c.Param("photoID")); err == nil {
 		photo, err := MyStore.GetPhoto(photoid)
 		if err == nil {
@@ -64,22 +74,19 @@ func GetPhotoHandler(c *gin.Context) {
 func UploadHandler(c *gin.Context) {
 
 	err := c.Request.ParseMultipartForm(1000)
-
 	form, err := c.MultipartForm()
-
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
 		fmt.Println("error getting multipartform", err)
 		panic(err)
 	}
 
-	fmt.Println(form.File, form.Value)
+	if !service.VerifyAPIRequest(c, form.Value["token"]) {
+		return
+	}
 
 	files := form.File["files"]
 	infoArray := form.Value["infoArray"]
-
-	fmt.Println("Files", form.File)
-	fmt.Println("infoArray", infoArray)
 
 	for i, file := range files {
 		filename := filepath.Base(file.Filename)
@@ -94,9 +101,7 @@ func UploadHandler(c *gin.Context) {
 		}
 	}
 
-	// fmt.Println("\n\n\n\n\n\n\n\nRESPONDING WITH", nil)
 	c.JSON(http.StatusOK, nil)
-	// c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(fmt.Sprintf("uploaded %d files! <a href='http://localhost:3000'>back</a>", len(files))))
 }
 
 // PreUploadMobileHandler handles takes data about photos that the mobile
@@ -168,6 +173,9 @@ func UploadMobileHandler(c *gin.Context) {
 
 // DeletePhotoHandler deletes a specific photo by ID
 func DeletePhotoHandler(c *gin.Context) {
+	if !service.VerifyAPIRequest(c, c.Request.Header["Token"]) {
+		return
+	}
 	if photoid, err := strconv.Atoi(c.Param("photoID")); err == nil {
 		err := MyStore.DeletePhoto(photoid)
 		if err == nil {

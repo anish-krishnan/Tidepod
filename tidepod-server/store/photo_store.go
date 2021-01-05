@@ -42,10 +42,6 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 
 	// Timestamp
 	newPhoto.Timestamp = time.Unix(int64(unixTime/1000), 0)
-	// fileinfo, err := os.Stat("photo_storage/saved/" + tempFilename)
-	// if err == nil {
-	// newPhoto.Timestamp = fileinfo.ModTime()
-	// }
 
 	util.ConvertImageToJPG(tempFilename, newFilename)
 

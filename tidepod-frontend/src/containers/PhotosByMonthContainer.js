@@ -1,6 +1,7 @@
 import React from 'react'
 import Gallery from 'react-photo-gallery';
 
+
 class PhotosByMonthContainer extends React.Component {
   state = {
     photosByMonth: [],
@@ -8,24 +9,15 @@ class PhotosByMonthContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("/api/photosByMonth")
+    fetch("/api/photosByMonth", {
+      headers: { "Token": this.props.idToken }
+    })
       .then(resp => resp.json())
       .then(photosByMonth => {
         console.log(photosByMonth)
 
         this.setState({
           photosByMonth: photosByMonth
-        })
-      })
-  }
-
-  handleDelete = (photo) => {
-    fetch("/api/photos/delete/" + photo.ID,
-      { method: "POST" })
-      .then(resp => resp.json())
-      .then(photos => {
-        this.setState({
-          photos: photos
         })
       })
   }
@@ -41,10 +33,11 @@ class PhotosByMonthContainer extends React.Component {
       var file = this.state.files[i]
       const formData = new FormData();
       formData.append('files', file)
-      console.log("BEFORE")
+      formData.append('infoArray', file.lastModified)
+      formData.append('token', this.props.idToken)
       await fetch("/api/upload", {
         method: 'POST',
-        body: formData
+        body: formData,
       })
         .then(resp => resp.json())
         .then(response => {
@@ -58,7 +51,13 @@ class PhotosByMonthContainer extends React.Component {
 
   onClick = (event) => {
     const { history } = this.props;
-    if (history) history.push('/photo/' + event.target.id);
+    console.log("history", history)
+    if (history) {
+      history.push({
+        pathname: '/photo/' + event.target.id,
+        state: { idToken: this.props.idToken }
+      });
+    }
   }
 
   render() {

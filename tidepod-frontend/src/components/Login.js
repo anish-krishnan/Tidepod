@@ -3,22 +3,21 @@ import { GoogleLogin } from 'react-google-login';
 // refresh token
 import { refreshTokenSetup } from '../utils/refreshToken';
 
-const clientId = '490899834821-99nr82qe6u0719iub1ojtuj2ijc7vhp4.apps.googleusercontent.com'
-
 class Login extends React.Component {
   onSuccess = (res) => {
-    if (res.profileObj.email !== "anishtech1@gmail.com") {
+    if (res.profileObj.googleId !== process.env.REACT_APP_VALID_GOOGLE_ID) {
+      this.props.updateErrorStatus("Error: " + res.profileObj.email + " is not authorized")
       console.log("email address not in system")
       return
     }
 
-    console.log('[Login Success] currentUser:', res.profileObj);
+    console.log('[Login Success] currentUser:', res);
 
     // initializing the setup
     refreshTokenSetup(res);
 
     if (res.accessToken) {
-      this.props.updateLoginStatus(true, res.accessToken)
+      this.props.updateLoginStatus(true, res.accessToken, res.tokenId)
     }
   };
 
@@ -30,7 +29,7 @@ class Login extends React.Component {
     return (
       <div>
         <GoogleLogin
-          clientId={clientId}
+          clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENT_ID}
           buttonText="Sign in with Google"
           onSuccess={this.onSuccess}
           onFailure={this.onFailure}

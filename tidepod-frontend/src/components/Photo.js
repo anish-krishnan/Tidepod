@@ -9,6 +9,7 @@ import Button from 'react-bootstrap/Button';
 import Box from '../components/Box'
 import mapboxgl from 'mapbox-gl';
 import { FaArrowLeft } from 'react-icons/fa';
+import { withRouter } from 'react-router-dom';
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_API_KEY;
 
 class Photo extends React.Component {
@@ -20,6 +21,7 @@ class Photo extends React.Component {
       lat: this.props.photo.Latitude,
       zoom: 16
     };
+    this.goBack = this.goBack.bind(this);
   }
 
   componentDidMount() {
@@ -36,8 +38,10 @@ class Photo extends React.Component {
     const marker = new mapboxgl.Marker()
       .setLngLat([this.state.lng, this.state.lat])
       .addTo(map);
+  }
 
-
+  goBack = (event) => {
+    this.props.history.goBack()
   }
 
   handleMinimize = () => {
@@ -55,7 +59,7 @@ class Photo extends React.Component {
         <div class="container-fluid" >
           <div class="row" >
             <div class="col-9" >
-              <a href="/"><h1 style={{ 'color': 'white', 'position': 'absolute', 'top': 0, 'left': 0 }}><FaArrowLeft /></h1></a>
+              <a onClick={this.goBack} ><h1 style={{ 'color': 'white', 'position': 'absolute', 'top': 0, 'left': 0 }}><FaArrowLeft /></h1></a>
               <img style={{ 'height': 'auto', 'maxWidth': '100%', 'maxHeight': '95vh' }} src={"/photo_storage/saved/" + this.props.photo.FilePath} ></img>
             </div>
 
@@ -122,4 +126,4 @@ class Photo extends React.Component {
   }
 }
 
-export default Photo;
+export default withRouter(Photo);

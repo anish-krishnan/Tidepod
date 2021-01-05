@@ -2,6 +2,7 @@ import React from 'react'
 import Photo from '../components/Photo'
 
 class PhotoMainContainer extends React.Component {
+
   state = {
     photo: "",
     photoId: this.props.match.params.photoId,
@@ -9,7 +10,9 @@ class PhotoMainContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("/api/photo/" + this.state.photoId)
+    fetch("/api/photo/" + this.state.photoId, {
+      headers: { "Token": this.props.location.state.idToken }
+    })
       .then(resp => resp.json())
       .then(photo => {
         console.log("GOT PHOTO", photo)
@@ -22,7 +25,10 @@ class PhotoMainContainer extends React.Component {
 
   handleDelete = (photo) => {
     fetch("/api/photos/delete/" + photo.ID,
-      { method: "POST" })
+      {
+        method: "POST",
+        headers: { "Token": this.props.location.state.idToken }
+      })
       .then(resp => resp.json())
       .then(photos => {
         this.setState({

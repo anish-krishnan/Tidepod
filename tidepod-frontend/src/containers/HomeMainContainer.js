@@ -8,18 +8,9 @@ class HomeMainContainer extends React.Component {
   }
 
   componentDidMount() {
-    fetch("/api/photos")
-      .then(resp => resp.json())
-      .then(photos => {
-        this.setState({
-          photos: photos
-        })
-      })
-  }
-
-  handleDelete = (photo) => {
-    fetch("/api/photos/delete/" + photo.ID,
-      { method: "POST" })
+    fetch("/api/photos", {
+      headers: { "Token": this.props.idToken }
+    })
       .then(resp => resp.json())
       .then(photos => {
         this.setState({
@@ -39,10 +30,11 @@ class HomeMainContainer extends React.Component {
       var file = this.state.files[i]
       const formData = new FormData();
       formData.append('files', file)
-      console.log("BEFORE")
+      formData.append('infoArray', file.lastModified)
+      formData.append('token', this.props.idToken)
       await fetch("/api/upload", {
         method: 'POST',
-        body: formData
+        body: formData,
       })
         .then(resp => resp.json())
         .then(response => {
@@ -56,7 +48,12 @@ class HomeMainContainer extends React.Component {
 
   onClick = (event) => {
     const { history } = this.props;
-    if (history) history.push('/photo/' + event.target.id);
+    if (history) {
+      history.push({
+        pathname: '/photo/' + event.target.id,
+        state: { idToken: this.props.idToken }
+      });
+    }
   }
 
   render() {

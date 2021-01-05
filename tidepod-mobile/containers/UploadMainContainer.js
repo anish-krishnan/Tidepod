@@ -30,7 +30,7 @@ export default class UploadMainContainer extends React.Component {
     if (status !== 'granted') {
       console.log("Permissions not granted!")
     }
-    let assetsPaged = await MediaLibrary.getAssetsAsync({ first: 10 });
+    let assetsPaged = await MediaLibrary.getAssetsAsync({ first: 1 });
     let assets = assetsPaged.assets
 
     // console.log("original assets\n", assetsPaged)

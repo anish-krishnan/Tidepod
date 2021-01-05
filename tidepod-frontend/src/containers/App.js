@@ -20,6 +20,8 @@ import {
   Route,
   Link
 } from "react-router-dom";
+import { FaLock } from 'react-icons/fa';
+
 
 class App extends React.Component {
 
@@ -28,18 +30,29 @@ class App extends React.Component {
 
     this.state = {
       isLoggedIn: false,
-      accessToken: ''
+      accessToken: '',
+      idToken: '',
+      errorMessage: ''
     };
   }
 
-  updateLoginStatus = (status, token) => {
+  updateLoginStatus = (status, accessToken, idToken) => {
     this.setState({
       isLoggedIn: status,
-      accessToken: token,
+      accessToken: accessToken,
+      idToken: idToken,
+      errorMessage: ''
+    })
+  }
+
+  updateErrorStatus = (message) => {
+    this.setState({
+      errorMessage: message
     })
   }
 
   render() {
+
     if (this.state.isLoggedIn) {
       return (
         <div className="App" >
@@ -47,8 +60,8 @@ class App extends React.Component {
             <Nav updateLoginStatus={this.updateLoginStatus} />
 
             <Switch>
-              <Route path='/' component={PhotosByMonthContainer} exact />
-              <Route path='/byMonth' component={PhotosByMonthContainer} exact />
+              <Route exact path='/' component={(props) => <PhotosByMonthContainer idToken={this.state.idToken} {...props} />} />
+              <Route exact path='/allPhotos' component={(props) => <HomeMainContainer idToken={this.state.idToken} {...props} />} />
               <Route path='/photo/:photoId' component={PhotoMainContainer} />
               <Route path='/labels' component={LabelsMainContainer} />
               <Route path='/label/:labelId' component={LabelMainContainer} />
@@ -64,8 +77,17 @@ class App extends React.Component {
         <div className="App" style={{ backgroundImage: `url(${tidepodLoginBackground})`, backgroundSize: 'cover', height: "100vh" }} >
           <br /><br /><br /><br /><br /><br />
           <h1 style={{ 'font-size': '60px' }}><img src={logo} className="App-logo" alt="logo" />Welcome to Tidepod</h1>
-          <Login updateLoginStatus={this.updateLoginStatus} />
-        </div>
+
+          <h3>{this.state.errorMessage}</h3>
+
+
+          <div class="text-center text-success">
+            <Login updateLoginStatus={this.updateLoginStatus} updateErrorStatus={this.updateErrorStatus} />
+            <br /><br />
+            <h1 class="text-center"><FaLock size="3em" /></h1>
+          </div>
+
+        </div >
       );
     }
   }
