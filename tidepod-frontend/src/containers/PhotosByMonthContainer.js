@@ -74,7 +74,7 @@ class PhotosByMonthContainer extends React.Component {
               <h2 align="left">{x.Month}</h2>
               <Gallery onClick={this.onClick} photos={
                 x.Photos.map(photo => {
-                  return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }
+                  return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.ThumbnailFilePath, height: 0, width: 0 }
                 })
               } />
               <br />

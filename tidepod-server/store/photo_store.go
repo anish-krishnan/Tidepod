@@ -30,8 +30,6 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	store.DB.Create(&newPhoto)
 
 	newPhoto.OriginalFilename = filename
-	newFilename := fmt.Sprintf("%d.%s", newPhoto.ID, "jpg")
-	newPhoto.FilePath = newFilename
 
 	fileParts := strings.Split(filename, ".")
 	ext := fileParts[len(fileParts)-1]
@@ -43,22 +41,35 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	// Timestamp
 	newPhoto.Timestamp = time.Unix(int64(unixTime/1000), 0)
 
-	util.ConvertImageToJPG(tempFilename, newFilename)
+	mediaType := util.GetMediaType(tempFilename)
+	newPhoto.MediaType = mediaType
 
-	file, err := os.Open("photo_storage/saved/" + newFilename)
-	if err != nil {
-		panic(err)
+	if mediaType == "photo" {
+		newFilename := fmt.Sprintf("%d.%s", newPhoto.ID, "jpg")
+		newPhoto.FilePath = newFilename
+		util.ConvertImageToJPG(tempFilename, newFilename)
+		file, err := os.Open("photo_storage/saved/" + newFilename)
+		if err != nil {
+			panic(err)
+		}
+		util.UpdatePhotoWithEXIF(&newPhoto, file)
+		file.Close()
+		store.DB.Save(newPhoto)
+		// Start the photo workflow in parallel
+		go workflow.RunPhotoWorkflow(store.DB, &newPhoto)
+
+	} else {
+		fileParts := strings.Split(filename, ".")
+		ext := fileParts[len(fileParts)-1]
+		newFilename := fmt.Sprintf("%d.%s", newPhoto.ID, ext)
+		newPhoto.FilePath = newFilename
+		err := os.Rename("photo_storage/saved/"+tempFilename, "photo_storage/saved/"+newFilename)
+		if err != nil {
+			panic(err)
+		}
+		store.DB.Save(newPhoto)
+		workflow.CreateVideoThumbnail(store.DB, &newPhoto)
 	}
-	util.UpdatePhotoWithEXIF(&newPhoto, file)
-	file.Close()
-
-	// Rotation logic has been moved to the thumbnail
-	// util.UpdatePhotoRotation(newFilename)
-
-	store.DB.Save(newPhoto)
-
-	// Start the photo workflow in parallel
-	go workflow.RunPhotoWorkflow(store.DB, &newPhoto)
 
 	return nil
 }

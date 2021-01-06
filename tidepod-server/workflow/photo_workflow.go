@@ -40,7 +40,7 @@ func init() {
 func RunPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
 	createFormattedTempImage(photo.FilePath, "./photo_storage/TEMP/"+photo.FilePath)
 
-	CreateThumbnail(photo)
+	CreatePhotoThumbnail(db, photo)
 	UpdatePhotoWithReadableLocation(db, photo)
 	LabelPhoto(db, photo)
 	RunFaceDetect(db, photo)
@@ -97,10 +97,13 @@ func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
 	mutex.Unlock()
 }
 
-// CreateThumbnail takes a photo, creates a 200x200 thumbnail
+// CreatePhotoThumbnail takes a photo, creates a 200x200 thumbnail
 // and saves it to the photo_storage/thumbnails/ directory.
 // It also rotates the thumbnail as needed
-func CreateThumbnail(photo *entity.Photo) {
+func CreatePhotoThumbnail(db *gorm.DB, photo *entity.Photo) {
+	photo.ThumbnailFilePath = photo.FilePath
+	db.Save(photo)
+
 	rotation := util.GetPhotoRotation("photo_storage/saved/" + photo.FilePath)
 
 	img, err := imaging.Open("photo_storage/saved/" + photo.FilePath)

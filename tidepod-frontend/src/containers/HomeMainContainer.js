@@ -65,7 +65,7 @@ class HomeMainContainer extends React.Component {
         </form>
         <Gallery onClick={this.onClick} photos={
           this.state.photos.map(photo => {
-            return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }
+            return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.ThumbnailFilePath, height: 0, width: 0 }
           })
         } />
       </div>

@@ -8,8 +8,9 @@ import {
 import Button from 'react-bootstrap/Button';
 import Box from '../components/Box'
 import mapboxgl from 'mapbox-gl';
-import { FaArrowLeft } from 'react-icons/fa';
-import { withRouter } from 'react-router-dom';
+import { FaArrowLeft, FaDownload } from 'react-icons/fa';
+import { withRouter } from 'react-router-dom'
+import ReactPlayer from 'react-player/file';
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_API_KEY;
 
 class Photo extends React.Component {
@@ -55,12 +56,17 @@ class Photo extends React.Component {
   render() {
     return (
 
-      <div className="photo" style={{ 'backgroundColor': 'black' }}>
+      <div className="photo" >
         <div class="container-fluid" >
           <div class="row" >
-            <div class="col-9" >
+            <div class="col-9" style={{ 'backgroundColor': 'black', height: "100vh" }}>
+              {
+                this.props.photo.MediaType == "photo" && (<img style={{ 'height': 'auto', 'maxWidth': '100%', 'maxHeight': '95vh' }} src={"/photo_storage/saved/" + this.props.photo.FilePath} ></img>)
+              }
+              {
+                this.props.photo.MediaType == "video" && (<ReactPlayer url={"/photo_storage/saved/" + this.props.photo.FilePath} width="100%" height="90%" controls={true} />)
+              }
               <a onClick={this.goBack} ><h1 style={{ 'color': 'white', 'position': 'absolute', 'top': 0, 'left': 0 }}><FaArrowLeft /></h1></a>
-              <img style={{ 'height': 'auto', 'maxWidth': '100%', 'maxHeight': '95vh' }} src={"/photo_storage/saved/" + this.props.photo.FilePath} ></img>
             </div>
 
             <div class="col-3 float-right" style={{ 'backgroundColor': 'white' }} align="left">
@@ -114,6 +120,7 @@ class Photo extends React.Component {
               </div>
 
               <div>
+                <a href={"http://localhost:3000/photo_storage/saved/" + this.props.photo.FilePath} style={{ 'color': 'black' }} download><FaDownload /></a>
                 <button type="button" class="btn btn-warning" onClick={this.handleDelete} >
                   <span className="glyphicon glyphicon-trash"></span>Delete
                 </button>

@@ -18,6 +18,9 @@ const (
 	MimeTypeBitmap = "image/bmp"
 	MimeTypeTiff   = "image/tiff"
 	MimeTypeHEIF   = "image/heif"
+
+	MimeTypeQuickTime = "video/quicktime"
+	MimeTypeMp4       = "video/mp4"
 )
 
 var mimeTable = map[string]string{
@@ -27,6 +30,25 @@ var mimeTable = map[string]string{
 	"image/bmp":  "bmp",
 	"image/tiff": "tiff",
 	"image/heif": "heif",
+
+	"video/quicktime": "quicktime",
+	"video/mp4":       "mp4",
+}
+
+// A set of all photo types
+var photoTypes = map[string]bool{
+	MimeTypeJpeg:   true,
+	MimeTypePng:    true,
+	MimeTypeGif:    true,
+	MimeTypeBitmap: true,
+	MimeTypeTiff:   true,
+	MimeTypeHEIF:   true,
+}
+
+// Set of all video types
+var videoTypes = map[string]bool{
+	MimeTypeQuickTime: true,
+	MimeTypeMp4:       true,
 }
 
 func getExtFromMimeType(mimeType string) string {
@@ -69,4 +91,17 @@ func NormalizedExt(fileName string) string {
 	}
 
 	return ""
+}
+
+// GetMediaType returns "photo" or "video" depending on the type of file
+func GetMediaType(filename string) string {
+	mimeType := getMimeType(filename)
+
+	if _, ok := photoTypes[mimeType]; ok {
+		return "photo"
+	} else if _, ok := videoTypes[mimeType]; ok {
+		return "video"
+	} else {
+		panic(fmt.Sprintf("file %s with type %s is neither a photo nor a video", filename, mimeType))
+	}
 }
