@@ -10,7 +10,6 @@ import (
 // GetFacesHandler gets all faces
 func GetFacesHandler(c *gin.Context) {
 	faces, err := MyStore.GetFaces()
-
 	if err == nil {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Content-Type", "application/json")

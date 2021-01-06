@@ -10,7 +10,6 @@ import (
 // GetLabelsHandler gets all labels
 func GetLabelsHandler(c *gin.Context) {
 	labels, err := MyStore.GetLabels()
-
 	if err == nil {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Content-Type", "application/json")

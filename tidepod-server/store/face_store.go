@@ -11,6 +11,12 @@ func (store *DBStore) GetFaces() ([]*entity.Face, error) {
 	var faces []*entity.Face
 	store.DB.Find(&faces)
 
+	for _, face := range faces {
+		var box entity.Box
+		store.DB.Where("face_id = ?", face.ID).First(&box)
+		face.Boxes = append(face.Boxes, box)
+	}
+
 	return faces, nil
 }
 

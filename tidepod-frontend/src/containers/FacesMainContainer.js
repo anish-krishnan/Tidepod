@@ -25,25 +25,37 @@ class FacesMainContainer extends React.Component {
 
 
   render() {
-    return (
-      <div className="labels-main-container" >
-        <h3>Faces</h3>
+    const faces = this.state.faces
+    if (!faces.length) {
+      return (
+        <div className="labels-main-container" >
+          <h3>No Faces</h3>
+          <br />
+          <p>Tag more photos and come back later &#128512;</p>
+        </div>
+      )
+    } else {
+      return (
+        <div className="labels-main-container" >
+          <h3>Faces</h3>
 
-        {this.state.faces.map(face => {
-          return (
-            <div class="card" style={{ width: '18rem' }}>
-              <div class="card-body">
-                <h5 class="card-title"><Link class="nav-link" to={`/face/${face.ID}`} > {face.Name}</Link></h5>
-                <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-              </div>
-            </div>
-
-          )
-        })
-        }
-      </div >
-    )
+          <div class="card-deck">
+            {faces.map(face => {
+              const box = face.Boxes[0]
+              return (
+                <div class="card" style={{ maxWidth: "200px" }}>
+                  <img class="card-img-top" src={"/photo_storage/boxes/" + box.FilePath} />
+                  <div class="card-body">
+                    <h4 class="card-title"><Link class="nav-link" to={`/face/${face.ID}`} > {face.Name}</Link></h4>
+                  </div>
+                </div>
+              )
+            })
+            }
+          </div>
+        </div >
+      )
+    }
   }
 }
 

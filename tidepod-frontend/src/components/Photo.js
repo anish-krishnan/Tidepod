@@ -41,6 +41,11 @@ class Photo extends React.Component {
       .addTo(map);
   }
 
+  formatDate = (string) => {
+    var options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' };
+    return new Date(string).toLocaleDateString([], options);
+  }
+
   goBack = (event) => {
     this.props.history.goBack()
   }
@@ -54,6 +59,7 @@ class Photo extends React.Component {
   }
 
   render() {
+    const photo = this.props.photo
     return (
 
       <div className="photo" >
@@ -61,10 +67,10 @@ class Photo extends React.Component {
           <div class="row" >
             <div class="col-9" style={{ 'backgroundColor': 'black', height: "100vh" }}>
               {
-                this.props.photo.MediaType == "photo" && (<img style={{ 'height': 'auto', 'maxWidth': '100%', 'maxHeight': '95vh' }} src={"/photo_storage/saved/" + this.props.photo.FilePath} ></img>)
+                photo.MediaType == "photo" && (<img style={{ 'height': 'auto', 'maxWidth': '100%', 'maxHeight': '95vh' }} src={"/photo_storage/saved/" + photo.FilePath} />)
               }
               {
-                this.props.photo.MediaType == "video" && (<ReactPlayer url={"/photo_storage/saved/" + this.props.photo.FilePath} width="100%" height="90%" controls={true} />)
+                photo.MediaType == "video" && (<ReactPlayer url={"/photo_storage/saved/" + photo.FilePath} width="100%" height="90%" controls={true} />)
               }
               <a onClick={this.goBack} ><h1 style={{ 'color': 'white', 'position': 'absolute', 'top': 0, 'left': 0 }}><FaArrowLeft /></h1></a>
             </div>
@@ -75,53 +81,56 @@ class Photo extends React.Component {
                 <tbody>
                   <tr>
                     <td><b>Camera Model</b></td>
-                    <td>{this.props.photo.CameraModel}</td>
+                    <td>{photo.CameraModel}</td>
                   </tr>
                   <tr>
                     <td><b>Location</b></td>
-                    <td>{this.props.photo.LocationString}</td>
+                    <td>{photo.LocationString}</td>
                   </tr>
                   <tr>
                     <td><b>Timestamp</b></td>
-                    <td>{this.props.photo.Timestamp}</td>
+                    <td>{this.formatDate(photo.Timestamp)}</td>
                   </tr>
                   <tr>
                     <td><b>FocalLength</b></td>
-                    <td>{this.props.photo.FocalLength}</td>
+                    <td>{photo.FocalLength}</td>
                   </tr>
                   <tr>
                     <td><b>Aperture</b></td>
-                    <td>{this.props.photo.ApertureFStop}</td>
+                    <td>{photo.ApertureFStop}</td>
                   </tr>
                   <tr>
                     <td><b>Filename</b></td>
-                    <td>{this.props.photo.OriginalFilename}</td>
+                    <td>{photo.OriginalFilename}</td>
                   </tr>
                 </tbody>
               </table>
 
-              {this.props.photo.LocationString.length > 0 &&
-                <div ref={el => this.mapContainer = el} style={{
-                  'width': '100%', 'height': '40%',
-                }} align="center" />
-              }
-
               <div>
-                {this.props.photo.Labels.map(function (label, i) {
-                  return (<Link to={`/label/${label.ID}`} key={i}><Button variant="secondary">{label.LabelName}</Button></Link>);
+                {photo.Labels.map(function (label, i) {
+                  return (<Link class="badge badge-secondary" style={{ "margin-right": "5px" }} to={`/label/${label.ID}`} key={i}><h5>{label.LabelName}</h5></Link>);
                 })}
               </div>
+              <br />
 
-              <div>
-                {this.props.photo.Boxes.map(function (box, i) {
+              <div class="card-deck">
+                {photo.Boxes.map(function (box, i) {
                   console.log(box)
                   return (<Box box={box} key={i} />);
                 })}
               </div>
+              <br />
+
+              {photo.LocationString.length > 0 &&
+                <div ref={el => this.mapContainer = el} style={{
+                  'width': '100%', 'height': '40%',
+                }} align="center" />
+              }
+              <br />
 
               <div>
-                <a href={"http://localhost:3000/photo_storage/saved/" + this.props.photo.FilePath} style={{ 'color': 'black' }} download><FaDownload /></a>
-                <button type="button" class="btn btn-warning" onClick={this.handleDelete} >
+                <a href={"http://localhost:3000/photo_storage/saved/" + photo.FilePath} style={{ 'color': 'black' }} download><FaDownload /></a>
+                <button type="button" class="btn btn-danger" onClick={this.handleDelete} >
                   <span className="glyphicon glyphicon-trash"></span>Delete
                 </button>
               </div>
