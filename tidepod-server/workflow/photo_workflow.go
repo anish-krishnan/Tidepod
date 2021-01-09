@@ -16,7 +16,7 @@ import (
 	"github.com/Kagami/go-face"
 	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"github.com/anish-krishnan/Tidepod/tidepod-server/util"
-	objectdetection "github.com/anish-krishnan/Tidepod/tidepod-server/workflow/object_detection"
+	objectDetectionScript "github.com/anish-krishnan/Tidepod/tidepod-server/workflow/object_detection/scripts"
 	"github.com/codingsince1985/geo-golang"
 	"github.com/codingsince1985/geo-golang/mapquest/open"
 	"github.com/disintegration/imaging"
@@ -76,7 +76,8 @@ func createFormattedTempImage(filename string, tempFilePath string) {
 func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
 
 	// Get Labels
-	labels, err := objectdetection.GetLabelsForFile("./photo_storage/TEMP/" + photo.FilePath)
+	// labels, err := objectdetection.GetLabelsForFile("./photo_storage/TEMP/" + photo.FilePath)
+	labels, err := objectDetectionScript.GetLabelsWithPythonScript("./photo_storage/TEMP/" + photo.FilePath)
 	if err != nil {
 		panic(err)
 	}

@@ -60,9 +60,23 @@ class Photo extends React.Component {
 
   render() {
     const photo = this.props.photo
+
+    var i, tempArray, chunk = 3;
+    var faces = []
+    for (i = 0; i < photo.Boxes.length; i += chunk) {
+      tempArray = photo.Boxes.slice(i, i + chunk);
+      faces.push(<div class="card-deck">
+        {tempArray.map(function (box, i) {
+          console.log(box)
+          return (<Box box={box} key={i} />);
+        })}
+      </div>)
+    }
+
     return (
 
       <div className="photo" >
+
         <div class="container-fluid" >
           <div class="row" >
             <div class="col-9" style={{ 'backgroundColor': 'black', height: "100vh" }}>
@@ -103,6 +117,10 @@ class Photo extends React.Component {
                     <td><b>Filename</b></td>
                     <td>{photo.OriginalFilename}</td>
                   </tr>
+                  <tr>
+                    <td><b>Media Type</b></td>
+                    <td>{photo.MediaType}</td>
+                  </tr>
                 </tbody>
               </table>
 
@@ -113,15 +131,11 @@ class Photo extends React.Component {
               </div>
               <br />
 
-              <div class="card-deck">
-                {photo.Boxes.map(function (box, i) {
-                  console.log(box)
-                  return (<Box box={box} key={i} />);
-                })}
-              </div>
-              <br />
+              {faces}
+              < br />
 
-              {photo.LocationString.length > 0 &&
+              {
+                photo.LocationString.length > 0 &&
                 <div ref={el => this.mapContainer = el} style={{
                   'width': '100%', 'height': '40%',
                 }} align="center" />

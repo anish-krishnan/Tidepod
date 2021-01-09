@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import Gallery from 'react-photo-gallery';
+
+import { FaPlayCircle } from 'react-icons/fa';
 
 
 class PhotosByMonthContainer extends React.Component {
@@ -60,6 +62,50 @@ class PhotosByMonthContainer extends React.Component {
     }
   }
 
+  imageRenderer = ({ index, left, top, key, photo }) => {
+    const [height, width] = [photo.height, photo.width]
+    if (photo.photo.MediaType == "photo") {
+      return (
+        <div style={{ display: "inline" }}>
+          <img
+            onClick={this.onClick}
+            id={photo.id}
+            src={key}
+            style={{ margin: "2px", height: { height }, width: { width }, display: "block", cursor: "pointers" }} />
+        </div>
+      )
+    } else {
+      return (
+        <span style={{ margin: "2px", position: "relative", height: { height }, width: { width }, display: "inline", cursor: "pointers" }}>
+          <img
+            onClick={this.onClick}
+            id={photo.id}
+            src={key}
+          />
+          <h1><FaPlayCircle style={{ position: "absolute", top: "0%", left: "80%", color: "white" }} /></h1>
+        </span >
+      )
+    }
+    //   key={key}
+    //   margin={"2px"}
+    //   index={index}
+    //   photo={photo}
+    //   left={left}
+    //   top={top}
+    // />
+  }
+
+  // position: "absolute",
+  // top: 0,
+  // bottom: 0,
+  // left: 0,
+  // right: 0,
+  // height: "100%",
+  // width: "100%",
+  // opacity: 0,
+  // transition: ".3s ease",
+  // "background-color": "red",
+
   render() {
     return (
       <div className="main-container" >
@@ -72,9 +118,9 @@ class PhotosByMonthContainer extends React.Component {
           return (
             <div>
               <h2 align="left">{x.Month}</h2>
-              <Gallery onClick={this.onClick} photos={
+              <Gallery onClick={this.onClick} renderImage={this.imageRenderer} photos={
                 x.Photos.map(photo => {
-                  return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.ThumbnailFilePath, height: 0, width: 0 }
+                  return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.ThumbnailFilePath, height: 0, width: 0, photo: photo };
                 })
               } />
               <br />

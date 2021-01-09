@@ -1,6 +1,7 @@
 tidepod-server/photo_storage/*
 *.db
 tidepod-server/workflow/object_detection/faster_rcnn_openimages_v4_inception_resnet_v2_1/*
+tidepod-server/workflow/object_detection/scripts/resnet50_coco_best_v2.1.0.h5
 
 # Credentials
 tidepod-server/credentials/*
