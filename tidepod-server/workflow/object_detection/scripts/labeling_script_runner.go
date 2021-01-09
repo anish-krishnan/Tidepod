@@ -9,7 +9,7 @@ import (
 // GetLabelsWithPythonScript runs the imageai resnet classifier to
 // label the image
 func GetLabelsWithPythonScript(fullFilePath string) ([]string, error) {
-	app := "python"
+	app := "python3"
 	arg0 := "./workflow/object_detection/scripts/object_detection.py"
 	arg1 := fullFilePath
 
