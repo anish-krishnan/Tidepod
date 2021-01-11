@@ -12,15 +12,16 @@ import LabelMainContainer from '../containers/LabelMainContainer'
 import LabelsMainContainer from '../containers/LabelsMainContainer'
 import FacesMainContainer from '../containers/FacesMainContainer'
 import FaceMainContainer from '../containers/FaceMainContainer'
-import Login from '../components/Login'
-import Logout from '../components/Logout'
+import UnassignedBoxesContainer from '../containers/UnassignedBoxesContainer'
+import LoginPage from '../components/LoginPage'
+
 import {
   BrowserRouter as Router,
   Switch,
   Route,
   Link
 } from "react-router-dom";
-import { FaLock } from 'react-icons/fa';
+
 
 
 class App extends React.Component {
@@ -61,12 +62,18 @@ class App extends React.Component {
 
             <Switch>
               <Route exact path='/' component={(props) => <PhotosByMonthContainer idToken={this.state.idToken} {...props} />} />
+
               <Route exact path='/allPhotos' component={(props) => <HomeMainContainer idToken={this.state.idToken} {...props} />} />
-              <Route path='/photo/:photoId' component={PhotoMainContainer} />
+              <Route path='/photo/:photoId' component={(props) => <PhotoMainContainer idToken={this.state.idToken} {...props} />} />
+
               <Route path='/labels' component={LabelsMainContainer} />
               <Route path='/label/:labelId' component={LabelMainContainer} />
+
               <Route path='/faces' component={FacesMainContainer} />
               <Route path='/face/:faceId' component={FaceMainContainer} />
+
+              <Route path='/unassignedBoxes' component={UnassignedBoxesContainer} />
+
               <Route component={Error} />
             </Switch>
           </Router>
@@ -74,20 +81,7 @@ class App extends React.Component {
       );
     } else {
       return (
-        <div className="App" style={{ backgroundImage: `url(${tidepodLoginBackground})`, backgroundSize: 'cover', height: "100vh" }} >
-          <br /><br /><br /><br /><br /><br />
-          <h1 style={{ 'font-size': '60px' }}><img src={logo} className="App-logo" alt="logo" />Welcome to Tidepod</h1>
-
-          <h3>{this.state.errorMessage}</h3>
-
-
-          <div class="text-center text-success">
-            <Login updateLoginStatus={this.updateLoginStatus} updateErrorStatus={this.updateErrorStatus} />
-            <br /><br />
-            <h1 class="text-center"><FaLock size="3em" /></h1>
-          </div>
-
-        </div >
+        <LoginPage errorMessage={this.state.errorMessage} updateLoginStatus={this.updateLoginStatus} updateErrorStatus={this.updateErrorStatus} />
       );
     }
   }

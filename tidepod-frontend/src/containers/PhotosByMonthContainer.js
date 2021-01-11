@@ -2,12 +2,16 @@ import React, { useCallback } from 'react'
 import Gallery from 'react-photo-gallery';
 
 import { FaPlayCircle } from 'react-icons/fa';
+import ProgressBar from 'react-bootstrap/ProgressBar'
 
 
 class PhotosByMonthContainer extends React.Component {
   state = {
     photosByMonth: [],
-    files: []
+    files: [],
+    uploading: false,
+    currentUploadNum: 0,
+    uploadLength: 0,
   }
 
   componentDidMount() {
@@ -32,6 +36,12 @@ class PhotosByMonthContainer extends React.Component {
 
   handleUpload = async (event) => {
     for (var i = 0; i < this.state.files.length; i++) {
+      this.setState({
+        uploading: true,
+        currentUploadNum: i + 1,
+        uploadLength: this.state.files.length
+      })
+
       var file = this.state.files[i]
       const formData = new FormData();
       formData.append('files', file)
@@ -49,11 +59,14 @@ class PhotosByMonthContainer extends React.Component {
           console.log("error", err)
         })
     }
+
+    this.setState({
+      uploading: false,
+    })
   }
 
   onClick = (event) => {
     const { history } = this.props;
-    console.log("history", history)
     if (history) {
       history.push({
         pathname: '/photo/' + event.target.id,
@@ -86,33 +99,29 @@ class PhotosByMonthContainer extends React.Component {
         </span >
       )
     }
-    //   key={key}
-    //   margin={"2px"}
-    //   index={index}
-    //   photo={photo}
-    //   left={left}
-    //   top={top}
-    // />
   }
 
-  // position: "absolute",
-  // top: 0,
-  // bottom: 0,
-  // left: 0,
-  // right: 0,
-  // height: "100%",
-  // width: "100%",
-  // opacity: 0,
-  // transition: ".3s ease",
-  // "background-color": "red",
 
   render() {
+    const uploadPercent = this.state.uploadLength ? (this.state.currentUploadNum / this.state.uploadLength * 100) : 0
+    const uploadBarLabel = (this.state.currentUploadNum) + " of " + (this.state.uploadLength)
+
     return (
       <div className="main-container" >
-        <form enctype="multipart/form-data" >
+        {this.state.uploading &&
+          (
+            <div>
+              <ProgressBar now={uploadPercent} label={uploadBarLabel} />
+              <h3>Uploading {this.state.currentUploadNum} of {this.state.uploadLength}</h3>
+            </div>
+          )
+        }
+
+        <form enctype="multipart/form-data" style={{ textAlign: 'left' }} >
           <input type="file" name="files" onChange={this.onChange} multiple /><br /><br />
           <input type="button" value="upload" onClick={this.handleUpload.bind(this)} />
         </form>
+
 
         {this.state.photosByMonth && this.state.photosByMonth.map(x => {
           return (

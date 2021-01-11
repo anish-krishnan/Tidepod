@@ -60,6 +60,7 @@ func main() {
 	api.GET("/classifyFaces", controller.ClassifyFacesHandler)
 
 	// Boxes Routes
+	api.GET("/unassignedBoxes", controller.GetUnassignedBoxesHandler)
 	api.GET("/boxes/assignface/:boxIDandName", controller.AssignFaceToBoxHandler)
 
 	// Start and run the server

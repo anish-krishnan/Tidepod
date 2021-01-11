@@ -1,6 +1,8 @@
 package store
 
 import (
+	"fmt"
+
 	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"gorm.io/gorm/clause"
 )
@@ -9,16 +11,20 @@ import (
 // number of photos
 func (store *DBStore) GetLabels() ([]*entity.Label, error) {
 	var labels []*entity.Label
-	store.DB.Preload(clause.Associations).Find(&labels)
+	store.DB.Find(&labels)
 
 	var nonEmptyLabels []*entity.Label
 
 	for _, label := range labels {
-		if len(label.Photos) > 0 {
+		var tempLabel entity.Label
+		store.DB.Preload(clause.Associations).First(&tempLabel, label.ID)
+
+		if len(tempLabel.Photos) > 0 {
+			label.Photos = append(label.Photos, tempLabel.Photos[0])
 			nonEmptyLabels = append(nonEmptyLabels, label)
 		}
 	}
-
+	fmt.Println(nonEmptyLabels)
 	return nonEmptyLabels, nil
 }
 

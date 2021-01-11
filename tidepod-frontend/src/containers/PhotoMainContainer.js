@@ -11,7 +11,7 @@ class PhotoMainContainer extends React.Component {
 
   componentDidMount() {
     fetch("/api/photo/" + this.state.photoId, {
-      headers: { "Token": this.props.location.state.idToken }
+      headers: { "Token": this.props.idToken }
     })
       .then(resp => resp.json())
       .then(photo => {
@@ -27,7 +27,7 @@ class PhotoMainContainer extends React.Component {
     fetch("/api/photos/delete/" + photo.ID,
       {
         method: "POST",
-        headers: { "Token": this.props.location.state.idToken }
+        headers: { "Token": this.props.idToken }
       })
       .then(resp => resp.json())
       .then(photos => {

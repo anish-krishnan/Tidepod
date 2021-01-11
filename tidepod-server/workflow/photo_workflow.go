@@ -26,6 +26,8 @@ import (
 var geocoder geo.Geocoder
 var mapquestAPIKEY string
 var mutex sync.Mutex
+var database *gorm.DB
+var labelPhotoChannel chan *entity.Photo
 
 func init() {
 	mapquestApiKeyRaw, err := ioutil.ReadFile("credentials/MapQuestAPIKEY.txt")
@@ -34,21 +36,24 @@ func init() {
 	}
 	mapquestAPIKEY = string(mapquestApiKeyRaw[:len(mapquestApiKeyRaw)-1])
 	geocoder = open.Geocoder(string(mapquestAPIKEY))
+
+	// buffer up to 1000 images before blocking the upload process
+	labelPhotoChannel = make(chan *entity.Photo, 1000)
+	go LabelPhoto()
 }
 
 // RunPhotoWorkflow runs the workflows sequentially
 func RunPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
+	database = db
+
 	createFormattedTempImage(photo.FilePath, "./photo_storage/TEMP/"+photo.FilePath)
 
 	CreatePhotoThumbnail(db, photo)
 	UpdatePhotoWithReadableLocation(db, photo)
-	LabelPhoto(db, photo)
+	// labelPhoto
 	RunFaceDetect(db, photo)
+	labelPhotoChannel <- photo
 
-	err := os.Remove("./photo_storage/TEMP/" + photo.FilePath)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func createFormattedTempImage(filename string, tempFilePath string) {
@@ -73,29 +78,39 @@ func createFormattedTempImage(filename string, tempFilePath string) {
 
 // LabelPhoto takes a photo and runs it through the tensorflow object
 // detection module. Updates database entry appropriately with labels
-func LabelPhoto(db *gorm.DB, photo *entity.Photo) {
+func LabelPhoto() {
+	for {
+		// Wait until a photo is received
+		photo := <-labelPhotoChannel
+		fmt.Println("Labeling photo:", photo.FilePath)
 
-	// Get Labels
-	// labels, err := objectdetection.GetLabelsForFile("./photo_storage/TEMP/" + photo.FilePath)
-	labels, err := objectDetectionScript.GetLabelsWithPythonScript("./photo_storage/TEMP/" + photo.FilePath)
-	if err != nil {
-		panic(err)
+		// Get Labels
+		// labels, err := objectdetection.GetLabelsForFile("./photo_storage/TEMP/" + photo.FilePath)
+		labels, err := objectDetectionScript.GetLabelsWithPythonScript("./photo_storage/TEMP/" + photo.FilePath)
+		if err != nil {
+			panic(err)
+		}
+
+		labelEntries := []entity.Label{}
+		for _, label := range labels {
+			var labelEntry entity.Label
+			database.Where("label_name = ?", label).First(&labelEntry)
+			labelEntries = append(labelEntries, labelEntry)
+		}
+		// photo.Labels = labelEntries
+
+		mutex.Lock()
+		var newPhoto entity.Photo
+		database.First(&newPhoto, photo.ID)
+		newPhoto.Labels = labelEntries
+		database.Save(newPhoto)
+		mutex.Unlock()
+
+		err = os.Remove("./photo_storage/TEMP/" + photo.FilePath)
+		if err != nil {
+			panic(err)
+		}
 	}
-
-	labelEntries := []entity.Label{}
-	for _, label := range labels {
-		var labelEntry entity.Label
-		db.Where("label_name = ?", label).First(&labelEntry)
-		labelEntries = append(labelEntries, labelEntry)
-	}
-	// photo.Labels = labelEntries
-
-	mutex.Lock()
-	var newPhoto entity.Photo
-	db.First(&newPhoto, photo.ID)
-	newPhoto.Labels = labelEntries
-	db.Save(newPhoto)
-	mutex.Unlock()
 }
 
 // CreatePhotoThumbnail takes a photo, creates a 200x200 thumbnail

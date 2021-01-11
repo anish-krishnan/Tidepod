@@ -34,6 +34,7 @@ type Store interface {
 	GetFace(faceID int) (entity.Face, error)
 	ClassifyFaces() error
 
+	GetUnassignedBoxes() ([]*entity.Box, error)
 	DeleteBox(box entity.Box) error
 	AssignFaceToBox(boxID int, faceName string) (entity.Box, error)
 }

@@ -1,4 +1,11 @@
 import React from 'react'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
+import { FaExpandAlt } from 'react-icons/fa';
 
 class Box extends React.Component {
 
@@ -15,8 +22,6 @@ class Box extends React.Component {
 
   handleListSubmit = (event) => {
     event.preventDefault()
-
-    console.log("SUBMITTED NAME", this.state.input)
 
     fetch("/api/boxes/assignface/" + this.state.box.ID + "+" + this.state.input)
       .then(resp => resp.json())
@@ -37,13 +42,14 @@ class Box extends React.Component {
   render() {
     if (this.state.box.Face.ID == 0) {
       return (
-        <div class="card" style={{ width: '10rem' }}>
+        <div class="card" style={{ maxWidth: '10rem' }}>
           <img class="card-img-top" src={"/photo_storage/boxes/" + this.state.box.FilePath} />
           <div class="card-body">
             <form onSubmit={this.handleListSubmit}>
               <input onChange={this.handleListInput} type="text" class="form-control" placeholder="Enter name" />
               <button type="submit" class="btn btn-primary">Submit</button>
             </form>
+            {this.props.showExpand && (<Link class="nav-link" to={`/photo/${this.state.box.PhotoID}`}><FaExpandAlt /></Link>)}
           </div>
         </div>
       )
@@ -53,7 +59,7 @@ class Box extends React.Component {
         <div class="card">
           <img class="card-img-top" src={"/photo_storage/boxes/" + this.state.box.FilePath} />
           <div class="card-body">
-            <h5 class="card-title">{this.state.box.Face.Name}</h5>
+            <h5 class="card-title"><Link class="nav-link" to={`/face/${this.state.box.Face.ID}`}>{this.state.box.Face.Name}</Link></h5>
           </div>
         </div>
       )

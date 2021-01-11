@@ -1,6 +1,7 @@
 import React from 'react'
 import PhotoGallery from '../containers/PhotoGallery'
 import Gallery from 'react-photo-gallery';
+import { FaTag } from 'react-icons/fa';
 
 class LabelMainContainer extends React.Component {
   state = {
@@ -39,7 +40,8 @@ class LabelMainContainer extends React.Component {
   render() {
     return (
       <div className="labels-main-container" >
-        <h3>Label : {this.state.label.LabelName}</h3>
+        <h1><FaTag /></h1>
+        <h3>Photos of a {this.state.label.LabelName}</h3>
         <Gallery onClick={this.onClick} photos={
           this.state.photos.map(photo => {
             return { id: photo.ID, src: "/photo_storage/thumbnails/" + photo.FilePath, height: 0, width: 0 }

@@ -17,7 +17,7 @@ func GetLabelsWithPythonScript(fullFilePath string) ([]string, error) {
 	out, err := cmd.Output()
 
 	if err != nil {
-		fmt.Printf("Error running python object detection script: %v", err)
+		fmt.Printf("Error running python object detection script (%s %s %s): %v", app, arg0, arg1, err)
 		panic(err)
 	}
 

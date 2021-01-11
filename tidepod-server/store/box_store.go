@@ -10,6 +10,13 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// GetUnassignedBoxes gets all boxes that are not assigned to a person
+func (store *DBStore) GetUnassignedBoxes() ([]*entity.Box, error) {
+	var boxes []*entity.Box
+	store.DB.Where("face_id = 0").Find(&boxes)
+	return boxes, nil
+}
+
 // DeleteBox deletes the box's photo and removes the entry from the database
 func (store *DBStore) DeleteBox(box entity.Box) error {
 	boxFilePath := "./photo_storage/boxes/" + box.FilePath

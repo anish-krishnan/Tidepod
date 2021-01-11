@@ -6,6 +6,11 @@ import {
   Link
 } from "react-router-dom";
 
+import Container from 'react-bootstrap/Container'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
+import { FaUsers } from 'react-icons/fa';
+
 class FacesMainContainer extends React.Component {
   state = {
     faces: []
@@ -29,30 +34,34 @@ class FacesMainContainer extends React.Component {
     if (!faces.length) {
       return (
         <div className="labels-main-container" >
-          <h3>No Faces</h3>
+          <h3><FaUsers /> No Faces</h3>
           <br />
-          <p>Tag more photos and come back later &#128512;</p>
+          <Link class="nav-link" to={"/unassignedBoxes"}>Tag more photos and come back later &#128512;</Link>
         </div>
       )
     } else {
       return (
         <div className="labels-main-container" >
-          <h3>Faces</h3>
-
-          <div class="card-deck">
-            {faces.map(face => {
-              const box = face.Boxes[0]
-              return (
-                <div class="card" style={{ maxWidth: "200px" }}>
-                  <img class="card-img-top" src={"/photo_storage/boxes/" + box.FilePath} />
-                  <div class="card-body">
-                    <h4 class="card-title"><Link class="nav-link" to={`/face/${face.ID}`} > {face.Name}</Link></h4>
-                  </div>
-                </div>
-              )
-            })
-            }
-          </div>
+          <h3><FaUsers /> Faces</h3>
+          <Link class="nav-link" to={"/unassignedBoxes"}>Tag more photos</Link>
+          <Container>
+            <Row>
+              {faces.map(face => {
+                const box = face.Boxes[0]
+                return (
+                  <Col xl={2} lg={3} md={4} sm={6} xs={12}>
+                    <div class="card" style={{ maxWidth: "18rem" }}>
+                      <img class="card-img-top" src={"/photo_storage/boxes/" + box.FilePath} />
+                      <div class="card-body">
+                        <h4 class="card-title"><Link class="nav-link" to={`/face/${face.ID}`}> {face.Name}</Link></h4>
+                      </div>
+                    </div>
+                  </Col>
+                )
+              })
+              }
+            </Row>
+          </Container>
         </div >
       )
     }

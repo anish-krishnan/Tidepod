@@ -11,6 +11,9 @@ import mapboxgl from 'mapbox-gl';
 import { FaArrowLeft, FaDownload } from 'react-icons/fa';
 import { withRouter } from 'react-router-dom'
 import ReactPlayer from 'react-player/file';
+import Container from 'react-bootstrap/Container'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_API_KEY;
 
 class Photo extends React.Component {
@@ -60,18 +63,6 @@ class Photo extends React.Component {
 
   render() {
     const photo = this.props.photo
-
-    var i, tempArray, chunk = 3;
-    var faces = []
-    for (i = 0; i < photo.Boxes.length; i += chunk) {
-      tempArray = photo.Boxes.slice(i, i + chunk);
-      faces.push(<div class="card-deck">
-        {tempArray.map(function (box, i) {
-          console.log(box)
-          return (<Box box={box} key={i} />);
-        })}
-      </div>)
-    }
 
     return (
 
@@ -125,14 +116,25 @@ class Photo extends React.Component {
               </table>
 
               <div>
-                {photo.Labels.map(function (label, i) {
+                {photo.Labels.map((label, i) => {
                   return (<Link class="badge badge-secondary" style={{ "margin-right": "5px" }} to={`/label/${label.ID}`} key={i}><h5>{label.LabelName}</h5></Link>);
                 })}
               </div>
               <br />
 
-              {faces}
-              < br />
+              <Container>
+                <Row>
+                  {photo.Boxes.map((box, i) => {
+                    return (
+                      <Col xl={6} lg={12} md={12} sm={12} xs={12}>
+                        <Box box={box} key={i} />
+                      </Col>
+                    )
+                  })
+                  }
+                </Row>
+              </Container>
+              <br />
 
               {
                 photo.LocationString.length > 0 &&
