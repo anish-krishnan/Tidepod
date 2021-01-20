@@ -28,6 +28,9 @@ func VerifyAPIRequest(c *gin.Context, tokens []string) bool {
 // VerifyIDToken verifies the session ID token to approve API requests
 func VerifyIDToken(idToken string) (*oauth2.Tokeninfo, error) {
 	oauth2Service, err := oauth2.New(httpClient)
+	if err != nil {
+		return nil, err
+	}
 	tokenInfoCall := oauth2Service.Tokeninfo()
 	tokenInfoCall.IdToken(idToken)
 	tokenInfo, err := tokenInfoCall.Do()
