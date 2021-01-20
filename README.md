@@ -14,7 +14,14 @@ I've been using Photos as my personal backup tool since its release in 2015. I'm
 
 After building my Network Array Storage Server while staying at home during quarantine, I decided to start Tidepod, a self-hosted photo management platform written. Out of the box computer vision libraries have become advanced over the past few years, and I would love to be able to recreate some of my favorite features from Photos, and add my own custom set of features. 
 
+## Architecture
+![Architecture Diagram](documentation/architecture.png)
 
+I expect to see lots of opportunities for concurrency in Tidepod. For example, running Tensor Flow's suite of classification algorithms for labelling just sounds like an [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel) use case. This is exactly why I chose to write Tidepod in Go!
+
+- Web Framework: [Gin](https://github.com/gin-gonic/gin) a framwork optimized for performance
+- ORM: [GORM](https://gorm.io/index.html)
+- Front end: [React](https://reactjs.org/) because who doesn't enjoy a fine looking site?
 
 ## :white_check_mark: Completed Goals
 - Be able to upload/download photos using the web interface
@@ -26,14 +33,5 @@ After building my Network Array Storage Server while staying at home during quar
 ## :steam_locomotive: Current Goals
 - Smart Search with a quick index
 - Mobile application to upload photos to server
-
-## Architecture
-![Architecture Diagram](documentation/architecture.png)
-
-I expect to see lots of opportunities for concurrency in Tidepod. For example, running Tensor Flow's suite of classification algorithms for labelling just sounds like an [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel) use case. This is exactly why I chose to write Tidepod in Go!
-
-- Web Framework: [Gin](https://github.com/gin-gonic/gin) a framwork optimized for performance
-- ORM: [GORM](https://gorm.io/index.html)
-- Front end: [React](https://reactjs.org/) because who doesn't enjoy a fine looking site?
 
 [goreport]: https://goreportcard.com/report/github.com/anish-krishnan/tidepod
