@@ -1,3 +1,4 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Quality](https://goreportcard.com/badge/github.com/anish-krishnan/tidepod)][goreport]
 
 <img src="favicon.png" alt="favicon" width="200"/>
