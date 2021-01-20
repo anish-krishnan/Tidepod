@@ -24,7 +24,7 @@ type Store interface {
 	GetPhoto(photoID int) (entity.Photo, error)
 	DeletePhoto(photoID int) error
 	GetPhotos() ([]*entity.Photo, error)
-	GetPhotosByMonth() ([]*MonthPhotoPair, error)
+	GetPhotosByMonth(offset int) ([]*MonthPhotoPair, error)
 	IsDuplicatePhoto(info map[string]interface{}) bool
 
 	GetLabels() ([]*entity.Label, error)
@@ -37,6 +37,8 @@ type Store interface {
 	GetUnassignedBoxes() ([]*entity.Box, error)
 	DeleteBox(box entity.Box) error
 	AssignFaceToBox(boxID int, faceName string) (entity.Box, error)
+
+	Search(query string) (SearchResult, error)
 }
 
 // DBStore implements the Store interface

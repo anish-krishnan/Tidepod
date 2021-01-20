@@ -35,11 +35,12 @@ func GetPhotosByMonthHandler(c *gin.Context) {
 		return
 	}
 
-	result, err := MyStore.GetPhotosByMonth()
-
-	for _, pair := range result {
-		fmt.Println(pair.Month, pair.Photos)
+	offset, err := strconv.Atoi(c.Param("offset"))
+	if err != nil {
+		panic(err)
 	}
+
+	result, err := MyStore.GetPhotosByMonth(offset)
 
 	if err == nil {
 		c.Header("Access-Control-Allow-Origin", "*")
@@ -97,6 +98,7 @@ func UploadHandler(c *gin.Context) {
 
 		err = MyStore.CreatePhoto(filename, file, unixTime)
 		if err != nil {
+			c.JSON(http.StatusUnsupportedMediaType, nil)
 			panic(err)
 		}
 	}

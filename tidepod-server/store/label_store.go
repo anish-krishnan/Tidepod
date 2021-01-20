@@ -1,8 +1,6 @@
 package store
 
 import (
-	"fmt"
-
 	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"gorm.io/gorm/clause"
 )
@@ -24,7 +22,6 @@ func (store *DBStore) GetLabels() ([]*entity.Label, error) {
 			nonEmptyLabels = append(nonEmptyLabels, label)
 		}
 	}
-	fmt.Println(nonEmptyLabels)
 	return nonEmptyLabels, nil
 }
 

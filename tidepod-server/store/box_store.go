@@ -2,7 +2,6 @@ package store
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
@@ -34,13 +33,11 @@ func (store *DBStore) DeleteBox(box entity.Box) error {
 func (store *DBStore) AssignFaceToBox(boxID int, faceName string) (entity.Box, error) {
 	var box entity.Box
 	store.DB.Preload(clause.Associations).First(&box, boxID)
-	fmt.Println("Found Box:", box)
 
 	var newFace entity.Face
 	result := store.DB.Where("name = ?", faceName).First(&newFace)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		fmt.Println("Creating new face")
 		newFace.Name = faceName
 		store.DB.Create(&newFace)
 	}

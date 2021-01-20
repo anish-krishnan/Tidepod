@@ -43,7 +43,7 @@ func main() {
 
 	// Photos Routes
 	api.GET("/photos", controller.GetPhotosHandler)
-	api.GET("/photosByMonth", controller.GetPhotosByMonthHandler)
+	api.GET("/photosByMonth/:offset", controller.GetPhotosByMonthHandler)
 	api.GET("/photo/:photoID", controller.GetPhotoHandler)
 	api.POST("/photos/delete/:photoID", controller.DeletePhotoHandler)
 	api.POST("/upload", controller.UploadHandler)
@@ -62,6 +62,9 @@ func main() {
 	// Boxes Routes
 	api.GET("/unassignedBoxes", controller.GetUnassignedBoxesHandler)
 	api.GET("/boxes/assignface/:boxIDandName", controller.AssignFaceToBoxHandler)
+
+	// Search Route
+	api.GET("/search/:query", controller.SearchHandler)
 
 	// Start and run the server
 	router.Run(":3000")

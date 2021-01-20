@@ -13,6 +13,7 @@ import LabelsMainContainer from '../containers/LabelsMainContainer'
 import FacesMainContainer from '../containers/FacesMainContainer'
 import FaceMainContainer from '../containers/FaceMainContainer'
 import UnassignedBoxesContainer from '../containers/UnassignedBoxesContainer'
+import SearchMainContainer from '../containers/SearchMainContainer'
 import LoginPage from '../components/LoginPage'
 
 import {
@@ -73,6 +74,8 @@ class App extends React.Component {
               <Route path='/face/:faceId' component={FaceMainContainer} />
 
               <Route path='/unassignedBoxes' component={UnassignedBoxesContainer} />
+
+              <Route path='/search' component={SearchMainContainer} />
 
               <Route component={Error} />
             </Switch>

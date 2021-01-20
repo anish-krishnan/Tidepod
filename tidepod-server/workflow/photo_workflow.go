@@ -23,11 +23,21 @@ import (
 	"gorm.io/gorm"
 )
 
+// Geocoder used to convert lat/long coords of images
 var geocoder geo.Geocoder
 var mapquestAPIKEY string
+
+// mutex used to prevent race condition on
+// parallel database writes
 var mutex sync.Mutex
+
+// Database access point
 var database *gorm.DB
-var labelPhotoChannel chan *entity.Photo
+
+// Queues for various photo workflows
+var faceDetectQueue chan *entity.Photo
+var labelPhotoQueue chan *entity.Photo
+var completedTaskQueue chan *entity.Photo
 
 func init() {
 	mapquestApiKeyRaw, err := ioutil.ReadFile("credentials/MapQuestAPIKEY.txt")
@@ -37,9 +47,14 @@ func init() {
 	mapquestAPIKEY = string(mapquestApiKeyRaw[:len(mapquestApiKeyRaw)-1])
 	geocoder = open.Geocoder(string(mapquestAPIKEY))
 
-	// buffer up to 1000 images before blocking the upload process
-	labelPhotoChannel = make(chan *entity.Photo, 1000)
+	// buffer up to 10000 images before blocking the upload process
+	faceDetectQueue = make(chan *entity.Photo, 10000)
+	labelPhotoQueue = make(chan *entity.Photo, 10000)
+	completedTaskQueue = make(chan *entity.Photo)
+
+	go RunFaceDetect()
 	go LabelPhoto()
+	go GarbageCollector()
 }
 
 // RunPhotoWorkflow runs the workflows sequentially
@@ -50,12 +65,12 @@ func RunPhotoWorkflow(db *gorm.DB, photo *entity.Photo) {
 
 	CreatePhotoThumbnail(db, photo)
 	UpdatePhotoWithReadableLocation(db, photo)
-	// labelPhoto
-	RunFaceDetect(db, photo)
-	labelPhotoChannel <- photo
 
+	faceDetectQueue <- photo
+	labelPhotoQueue <- photo
 }
 
+// Creates a formatted temporary image used by all workflows
 func createFormattedTempImage(filename string, tempFilePath string) {
 	source, err := os.Open("./photo_storage/saved/" + filename)
 	if err != nil {
@@ -81,11 +96,9 @@ func createFormattedTempImage(filename string, tempFilePath string) {
 func LabelPhoto() {
 	for {
 		// Wait until a photo is received
-		photo := <-labelPhotoChannel
-		fmt.Println("Labeling photo:", photo.FilePath)
+		photo := <-labelPhotoQueue
 
 		// Get Labels
-		// labels, err := objectdetection.GetLabelsForFile("./photo_storage/TEMP/" + photo.FilePath)
 		labels, err := objectDetectionScript.GetLabelsWithPythonScript("./photo_storage/TEMP/" + photo.FilePath)
 		if err != nil {
 			panic(err)
@@ -97,19 +110,15 @@ func LabelPhoto() {
 			database.Where("label_name = ?", label).First(&labelEntry)
 			labelEntries = append(labelEntries, labelEntry)
 		}
-		// photo.Labels = labelEntries
 
 		mutex.Lock()
 		var newPhoto entity.Photo
 		database.First(&newPhoto, photo.ID)
 		newPhoto.Labels = labelEntries
-		database.Save(newPhoto)
+		database.Save(&newPhoto)
 		mutex.Unlock()
 
-		err = os.Remove("./photo_storage/TEMP/" + photo.FilePath)
-		if err != nil {
-			panic(err)
-		}
+		completedTaskQueue <- photo
 	}
 }
 
@@ -142,56 +151,61 @@ func CreatePhotoThumbnail(db *gorm.DB, photo *entity.Photo) {
 
 // RunFaceDetect takes a photo, and finds all faces in the image. It creates a
 // new "Box" for each found face
-func RunFaceDetect(db *gorm.DB, photo *entity.Photo) {
-	fileParts := strings.Split(photo.FilePath, ".")
-	ext := fileParts[len(fileParts)-1]
+func RunFaceDetect() {
+	for {
+		photo := <-faceDetectQueue
+		fileParts := strings.Split(photo.FilePath, ".")
+		ext := fileParts[len(fileParts)-1]
 
-	img, err := imaging.Open("./photo_storage/TEMP/" + photo.FilePath)
-	if err != nil {
-		panic(err)
-	}
-
-	rec, err := face.NewRecognizer("./workflow")
-	if err != nil {
-		panic(err)
-	}
-	defer rec.Close()
-
-	faces, err := rec.RecognizeFile("./photo_storage/TEMP/" + photo.FilePath)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, face := range faces {
-		box := entity.Box{
-			PhotoID: photo.ID,
-			MinX:    face.Rectangle.Min.X,
-			MinY:    face.Rectangle.Min.Y,
-			MaxX:    face.Rectangle.Max.X,
-			MaxY:    face.Rectangle.Max.Y,
-		}
-		db.Create(&box)
-		box.FilePath = fmt.Sprintf("%d.%s", box.ID, ext)
-		db.Save(&box)
-
-		photo.Boxes = append(photo.Boxes, box)
-		// crop out a rectangular region
-		croppedImg := imaging.Crop(img, image.Rect(box.MinX, box.MinY, box.MaxX, box.MaxY))
-		// lower resolution
-		compresedCroppedImg := imaging.Thumbnail(croppedImg, 100, 100, imaging.CatmullRom)
-		// save cropped image
-		err = imaging.Save(compresedCroppedImg, "./photo_storage/boxes/"+box.FilePath)
+		img, err := imaging.Open("./photo_storage/TEMP/" + photo.FilePath)
 		if err != nil {
 			panic(err)
 		}
-	}
 
-	mutex.Lock()
-	var newPhoto entity.Photo
-	db.First(&newPhoto, photo.ID)
-	newPhoto.Boxes = photo.Boxes
-	db.Save(newPhoto)
-	mutex.Unlock()
+		rec, err := face.NewRecognizer("./workflow")
+		if err != nil {
+			panic(err)
+		}
+		defer rec.Close()
+
+		faces, err := rec.RecognizeFile("./photo_storage/TEMP/" + photo.FilePath)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, face := range faces {
+			box := entity.Box{
+				PhotoID: photo.ID,
+				MinX:    face.Rectangle.Min.X,
+				MinY:    face.Rectangle.Min.Y,
+				MaxX:    face.Rectangle.Max.X,
+				MaxY:    face.Rectangle.Max.Y,
+			}
+			database.Create(&box)
+			box.FilePath = fmt.Sprintf("%d.%s", box.ID, ext)
+			database.Save(&box)
+
+			photo.Boxes = append(photo.Boxes, box)
+			// crop out a rectangular region
+			croppedImg := imaging.Crop(img, image.Rect(box.MinX, box.MinY, box.MaxX, box.MaxY))
+			// lower resolution
+			compresedCroppedImg := imaging.Thumbnail(croppedImg, 100, 100, imaging.CatmullRom)
+			// save cropped image
+			err = imaging.Save(compresedCroppedImg, "./photo_storage/boxes/"+box.FilePath)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		mutex.Lock()
+		var newPhoto entity.Photo
+		database.First(&newPhoto, photo.ID)
+		newPhoto.Boxes = photo.Boxes
+		database.Save(&newPhoto)
+		mutex.Unlock()
+
+		completedTaskQueue <- photo
+	}
 }
 
 // UpdatePhotoWithReadableLocation takes a photo, and uses the geo-coords
@@ -225,4 +239,24 @@ func UpdatePhotoWithReadableLocation(db *gorm.DB, photo *entity.Photo) {
 
 	formattedAddress := fmt.Sprintf("%s, %s %s, %s, %s, %s, %s", street, neighborhood, city, county, postalCode, state, country)
 	db.Model(&photo).Updates(entity.Photo{LocationString: formattedAddress})
+}
+
+// GarbageCollector waits for all tasks associated with a photo to be
+// completed before removing the TEMP file
+func GarbageCollector() {
+	var activeTempImages map[int]int = make(map[int]int)
+	for {
+		photo := <-completedTaskQueue
+		activeTempImages[photo.ID]++
+
+		// Once 2 tasks have been completed, we can safely remove the temp image
+		if activeTempImages[photo.ID] >= 2 {
+			err := os.Remove("./photo_storage/TEMP/" + photo.FilePath)
+			if err != nil {
+				panic(err)
+			}
+
+			delete(activeTempImages, photo.ID)
+		}
+	}
 }

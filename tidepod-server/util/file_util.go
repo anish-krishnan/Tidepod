@@ -75,10 +75,10 @@ func getMimeType(filename string) string {
 	if _, err := handle.Read(buffer); err != nil {
 		panic(err)
 		return ""
-	} else if t, err := filetype.Get(buffer); err == nil && t != filetype.Unknown {
+	} else if t, err := filetype.Get(buffer); err == nil {
 		return t.MIME.Value
-	} else if t := filetype.GetType(NormalizedExt(filename)); t != filetype.Unknown {
-		return t.MIME.Value
+		// } else if t := filetype.GetType(NormalizedExt(filename)); t != filetype.Unknown {
+		// 	return t.MIME.Value
 	} else {
 		return ""
 	}
@@ -104,4 +104,13 @@ func GetMediaType(filename string) string {
 	} else {
 		panic(fmt.Sprintf("file %s with type %s is neither a photo nor a video", filename, mimeType))
 	}
+}
+
+// IsValidMediaType returns true if the file is either a photo or video
+func IsValidMediaType(filename string) bool {
+	mimeType := getMimeType(filename)
+	_, isPhoto := photoTypes[mimeType]
+	_, isVideo := photoTypes[mimeType]
+
+	return isPhoto || isVideo
 }

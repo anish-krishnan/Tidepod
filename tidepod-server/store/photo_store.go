@@ -1,6 +1,7 @@
 package store
 
 import (
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"os"
@@ -26,10 +27,6 @@ type MonthPhotoPair struct {
 //  2. labels the image using the tensorflow object detection package
 //  3. adds the entry to the database
 func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileHeader, unixTime int64) error {
-	var newPhoto entity.Photo
-	store.DB.Create(&newPhoto)
-
-	newPhoto.OriginalFilename = filename
 
 	fileParts := strings.Split(filename, ".")
 	ext := fileParts[len(fileParts)-1]
@@ -38,7 +35,18 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 	var c *gin.Context
 	c.SaveUploadedFile(uploadedFile, "photo_storage/saved/"+tempFilename)
 
-	// Timestamp
+	if !util.IsValidMediaType(tempFilename) {
+		err := os.Remove("./photo_storage/saved/" + tempFilename)
+		if err != nil {
+			panic(err)
+		}
+		return errors.New("Invalid media type")
+	}
+
+	var newPhoto entity.Photo
+	store.DB.Create(&newPhoto)
+
+	newPhoto.OriginalFilename = filename
 	newPhoto.Timestamp = time.Unix(int64(unixTime/1000), 0)
 
 	mediaType := util.GetMediaType(tempFilename)
@@ -55,6 +63,7 @@ func (store *DBStore) CreatePhoto(filename string, uploadedFile *multipart.FileH
 		util.UpdatePhotoWithEXIF(&newPhoto, file)
 		file.Close()
 		store.DB.Save(newPhoto)
+
 		// Start the photo workflow in parallel
 		go workflow.RunPhotoWorkflow(store.DB, &newPhoto)
 
@@ -108,7 +117,6 @@ func (store *DBStore) CreatePhotoFromMobile(filename string, uploadedFile *multi
 	go workflow.RunPhotoWorkflow(store.DB, &newPhoto)
 
 	return nil
-
 }
 
 // GetPhotos gets all photos
@@ -118,8 +126,49 @@ func (store *DBStore) GetPhotos() ([]*entity.Photo, error) {
 	return photos, nil
 }
 
-// GetPhotosByMonth gets all photos by month
-func (store *DBStore) GetPhotosByMonth() ([]*MonthPhotoPair, error) {
+// GetPhotosByMonth gets all photos and partitions them by (month, year) pairs
+func (store *DBStore) GetPhotosByMonth(offset int) ([]*MonthPhotoPair, error) {
+	numLimit := 100
+	numSkip := offset * numLimit
+
+	var photos []*entity.Photo
+	store.DB.Order("timestamp desc").Offset(numSkip).Limit(numLimit).Find(&photos)
+
+	var result []*MonthPhotoPair
+
+	var curMonth time.Month
+	var curYear int
+	var curPhotos []*entity.Photo
+
+	for i, photo := range photos {
+		ts := photo.Timestamp
+		month, year := ts.Month(), ts.Year()
+
+		if i == 0 {
+			curMonth, curYear = month, year
+		}
+
+		if month != curMonth || year != curYear {
+			monthString := fmt.Sprintf("%s %d", curMonth, curYear)
+			result = append(result, &MonthPhotoPair{Month: monthString, Photos: curPhotos})
+			curMonth, curYear = month, year
+			curPhotos = nil
+		}
+
+		curPhotos = append(curPhotos, photo)
+	}
+
+	monthString := fmt.Sprintf("%s %d", curMonth, curYear)
+	result = append(result, &MonthPhotoPair{Month: monthString, Photos: curPhotos})
+
+	fmt.Println(result)
+
+	return result, nil
+}
+
+// GetPhotosByMonthSlow is an older implementation of GetPhotosByMonth that
+// uses sorting
+func (store *DBStore) GetPhotosByMonthSlow() ([]*MonthPhotoPair, error) {
 	var photos []*entity.Photo
 	store.DB.Order("timestamp desc").Find(&photos)
 
