@@ -161,8 +161,6 @@ func (store *DBStore) GetPhotosByMonth(offset int) ([]*MonthPhotoPair, error) {
 	monthString := fmt.Sprintf("%s %d", curMonth, curYear)
 	result = append(result, &MonthPhotoPair{Month: monthString, Photos: curPhotos})
 
-	fmt.Println(result)
-
 	return result, nil
 }
 

@@ -110,7 +110,7 @@ func GetMediaType(filename string) string {
 func IsValidMediaType(filename string) bool {
 	mimeType := getMimeType(filename)
 	_, isPhoto := photoTypes[mimeType]
-	_, isVideo := photoTypes[mimeType]
+	_, isVideo := videoTypes[mimeType]
 
 	return isPhoto || isVideo
 }

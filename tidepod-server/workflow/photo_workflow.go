@@ -99,7 +99,7 @@ func LabelPhoto() {
 		photo := <-labelPhotoQueue
 
 		// Get Labels
-		labels, err := objectDetectionScript.GetLabelsWithPythonScript("./photo_storage/TEMP/" + photo.FilePath)
+		labels, err := objectDetectionScript.GetLabelsForImage(photo.FilePath)
 		if err != nil {
 			panic(err)
 		}

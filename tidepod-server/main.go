@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/anish-krishnan/Tidepod/tidepod-server/controller"
 	"github.com/gin-gonic/contrib/cors"
@@ -10,6 +12,10 @@ import (
 )
 
 func main() {
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	// Set up routes
 	router := gin.Default()
