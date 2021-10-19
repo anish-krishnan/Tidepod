@@ -15,7 +15,7 @@ func GetLabelsForImage(filename string) ([]string, error) {
 	form := url.Values{}
 	form.Add("filename", filename)
 
-	resp, err := http.PostForm("http://localhost:2999", form)
+	resp, err := http.PostForm("http://localhost:2999/labelImage", form)
 
 	if err != nil {
 		log.Fatalln(err)

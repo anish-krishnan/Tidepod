@@ -5,6 +5,7 @@ tidepod-server/workflow/object_detection/scripts/resnet50_coco_best_v2.1.0.h5
 
 hurricane/resnet50_coco_best_v2.1.0.h5
 *.h5
+*.eslintcache
 
 
 # Credentials

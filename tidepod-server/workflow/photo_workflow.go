@@ -9,11 +9,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
 
-	"github.com/Kagami/go-face"
 	"github.com/anish-krishnan/Tidepod/tidepod-server/entity"
 	"github.com/anish-krishnan/Tidepod/tidepod-server/util"
 	objectDetectionScript "github.com/anish-krishnan/Tidepod/tidepod-server/workflow/object_detection/scripts"
@@ -162,24 +162,56 @@ func RunFaceDetect() {
 			panic(err)
 		}
 
-		rec, err := face.NewRecognizer("./workflow")
-		if err != nil {
-			panic(err)
-		}
-		defer rec.Close()
+		// rec, err := face.NewRecognizer("./workflow")
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// defer rec.Close()
 
-		faces, err := rec.RecognizeFile("./photo_storage/TEMP/" + photo.FilePath)
+		// faces, err := rec.RecognizeFile("./photo_storage/TEMP/" + photo.FilePath)
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		// Encode the data
+		form := url.Values{}
+		form.Add("filename", photo.FilePath)
+
+		resp, err := http.PostForm("http://localhost:2999/faceDetect", form)
+		//Handle Error
 		if err != nil {
-			panic(err)
+			log.Fatalf("An Error Occured %v", err)
+		}
+		defer resp.Body.Close()
+		//Read the response body
+		body, err := ioutil.ReadAll(resp.Body)
+		fmt.Println("got body")
+		fmt.Println(string(body))
+		if err != nil {
+			log.Fatalln(err)
 		}
 
-		for _, face := range faces {
+		type Face struct {
+			MinX int `json:"minX"`
+			MinY int `json:"minY"`
+			MaxX int `json:"maxX"`
+			MaxY int `json:"maxY"`
+		}
+
+		type FaceData struct {
+			Faces []Face `json:"faces"`
+		}
+
+		var faceData FaceData
+		err = json.Unmarshal(body, &faceData)
+
+		for _, face := range faceData.Faces {
 			box := entity.Box{
 				PhotoID: photo.ID,
-				MinX:    face.Rectangle.Min.X,
-				MinY:    face.Rectangle.Min.Y,
-				MaxX:    face.Rectangle.Max.X,
-				MaxY:    face.Rectangle.Max.Y,
+				MinX:    face.MinX,
+				MinY:    face.MinY,
+				MaxX:    face.MaxX,
+				MaxY:    face.MaxY,
 			}
 			database.Create(&box)
 			box.FilePath = fmt.Sprintf("%d.%s", box.ID, ext)

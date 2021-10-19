@@ -2,7 +2,7 @@
   "name": "tidepod-frontend",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://10.0.0.193:3000",
+  "proxy": "http://localhost:3000",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
